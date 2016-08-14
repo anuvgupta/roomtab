@@ -7,4 +7,4 @@ Libraries Used
 &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;[jQuery](https://jquery.com/) - v1.12.4  
 &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;[block.js](https://github.com/anuvgupta/block.js) - v2.0 (also made by me)
 
-*Icons courtesy of [iconfinder](http://www.iconfinder.com)*  
+*Icons courtesy of [IconFinder](http://www.iconfinder.com)*  
