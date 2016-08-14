@@ -69,7 +69,7 @@ Block('icon', function () {
             height: '33.5px',
             width: '33.5px',
             cursor: 'pointer',
-            opacity: '0.4'
+            'opacity': '0.4'
         })
     ;
     return block;
@@ -275,7 +275,14 @@ Block('main family', function () {
         )
         .add(Block('icon', 'delete')
             .on('click', function () {
-                block.parent(4).child('modal').on('show', { page: 'delete' });
+                block.parent(4).child('modal').on('show', {
+                    page: 'delete',
+                    data: {
+                        id: block.key('id'),
+                        owner: block.key('owner'),
+                        val: block.child('text').node().innerHTML
+                    }
+                });
             })
             .data({
                 name: 'delete',
@@ -329,15 +336,21 @@ Block('main family', function () {
                     })
                     .parent()
                 .child('edit')
-                    .css('display', 'inline-block')
+                    .css({
+                        'display': 'inline-block',
+                        'opacity': '0'
+                    })
                     .parent()
                 .child('delete')
-                    .css('display', (block.key('owner')) ? 'inline-block' : 'none')
+                    .css({
+                        'display': 'inline-block',
+                        'opacity': '0'
+                    })
                     .parent()
             ;
             setTimeout(function () {
                 block.child('edit').css('opacity', '0.37');
-                if (block.key('owner')) block.child('delete').css('opacity', '0.37');
+                block.child('delete').css('opacity', '0.37');
             }, 20);
         })
         .on('close', function () {
@@ -362,7 +375,7 @@ Block('main family', function () {
             ;
             setTimeout(function () {
                 block.child('edit').css('display', 'none');
-                if (block.key('owner')) block.child('delete').css('display', 'none');
+                block.child('delete').css('display', 'none');
             }, 300);
         })
         .__add(Block('div', 'bar')
@@ -390,8 +403,7 @@ Block('main family', function () {
     if (id != null) block.key('id', id);
     var owner = data('owner');
     if (owner === true) block.key('owner', true);
-    else if (owner === false) {
-        block.key('owner', false);
-        block.child('edit').css('right', '20px');
-    }
+    else if (owner === false)
+        block.key('owner', false)
+            .child('delete').data({ name: 'exit' });
 });

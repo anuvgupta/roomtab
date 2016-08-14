@@ -208,16 +208,64 @@ elseif($_POST['target'] == 'active') {
         if (!isset($id) || !ctype_alnum($id)) fail('Invalid ID');
         elseif (!isset($name)) fail('Name cannot be empty');
         $id = $db->real_escape_string($id);
-        $safename = $db->real_escape_string($name);
+        $name_safe = $db->real_escape_string($name);
         $sql = "SELECT * FROM `families` WHERE `id` = '$id' AND (`owner` = '$username' OR `users` LIKE '%$username%')";
         if(!$result = $db->query($sql))
             fail("Error running query [$db->error]");
         if ($result->num_rows == 0)
             fail('No matching families found');
-        $sql = "UPDATE `families` SET name = '$safename' WHERE `id` = '$id'";
+        $sql = "UPDATE `families` SET name = '$name_safe' WHERE `id` = '$id'";
         if(!$result = $db->query($sql))
             fail("Error running query [$db->error]");
         else succeed('Name changed', ['name' => $name, 'id' => $id]);
+    } elseif ($_POST['action'] == 'delete') {
+        $lists = [];
+        $id = @$_POST['id'];
+        if (!isset($id) || !ctype_alnum($id)) fail('Invalid ID');
+        $id = $db->real_escape_string($id);
+        $sql = "SELECT * FROM `families` WHERE `id` = '$id' AND (`owner` = '$username' OR `users` LIKE '%$username%')";
+        if(!$result = $db->query($sql))
+            fail("Error running query [$db->error]");
+        if ($result->num_rows != 1)
+            fail('No matching families found');
+        $family = $result->fetch_assoc();
+        $owner = ($family['owner'] == $username);
+        if (!$owner) {
+            $users = explode(',', $family['users']);
+            if (in_array($username, $users))
+            	unset($users[array_search($username, $users)]);
+            $family['users'] = implode(',', $users);
+            $sql = "UPDATE `families` SET `users` = '{$family['users']}' WHERE `id` = '{$family['id']}'";
+            if(!$result = $db->query($sql))
+                fail("Error running query [$db->error]");
+            succeed('Removed from family', ['family' => $family]);
+        } else {
+            $sql = "SELECT * FROM `lists` WHERE `family` = '{$family['id']}'";
+            if(!$resultA = $db->query($sql))
+                fail("Error running query [$db->error]");
+            while ($list = $resultA->fetch_assoc()) {
+                $lists[$list['id']] = $list;
+                $sql = "SELECT * FROM `entries` WHERE `list` = '{$list['id']}'";
+                if(!$resultB = $db->query($sql))
+                    fail("Error running query [$db->error]");
+                if ($resultB->num_rows > 0)
+                    while ($entry = $resultB->fetch_assoc())
+                        $lists[$list['id']]['entries'][$entry['id']] = $entry;
+                $sql = "DELETE FROM `entries` WHERE `list` = '{$list['id']}'";
+                if(!$resultC = $db->query($sql))
+                    fail("Error running query [$db->error]");
+            }
+            $sql = "DELETE FROM `lists` WHERE `family` = '{$family['id']}'";
+            if(!$resultD = $db->query($sql))
+                fail("Error running query [$db->error]");
+            $sql = "DELETE FROM `families` WHERE `id` = '$id' AND (`owner` = '$username' OR `users` LIKE '%$username%')";
+            if(!$resultE = $db->query($sql))
+                fail("Error running query [$db->error]");
+            succeed('Family and lists deleted', [
+                'family' => $family,
+                'lists' => $lists
+            ]);
+        }
     }
 }
 

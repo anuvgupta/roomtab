@@ -174,7 +174,7 @@ var pages = {
                 .add(Block('block', 1)
                     .add(Block('block', 'modal')
                         .add(Block('div', 'name')
-                            .add('text', 1)
+                            .add('text', 'title')
                             .add(Block('login input', 'input')
                                 .on('keyup', function (e) {
                                     if (e.which == 13 || e.keyCode == 13)
@@ -214,9 +214,9 @@ var pages = {
                                                 },
                                                 dataType: 'json',
                                                 success: function (data) {
-                                                    if (!data.success) {
+                                                    if (!data.success)
                                                         fail(data.message);
-                                                    } else {
+                                                    else {
                                                         main.child('modal/block/modal/name/message').data(data.message);
                                                         main.child('body/families/div/list/' + data.id).data(data.name);
                                                         main.child('modal').on('click');
@@ -248,9 +248,87 @@ var pages = {
                         )
                         .add(Block('div', 'delete')
                             .css('display', 'none')
-                            .add('text', 1)
+                            .add('text', 'title')
+                            .add(Block('div', 'message')
+                                .add('text', 'left')
+                                .add('text', 'family')
+                                .add('text', 'right')
+                                .add('break')
+                                .add('text', 'small')
+                            )
+                            .add(Block('div', 'options')
+                                .add(Block('icon', 'cancel')
+                                    .on('click', function () {
+                                        main.child('modal').on('click');
+                                    })
+                                )
+                                .add(Block('icon', 'confirm')
+                                    .on('click', function () {
+                                        var del = main.child('modal/block/modal/delete');
+                                        var id = del.key('id');
+                                        $.ajax({
+                                            url: 'index.php',
+                                            type: 'POST',
+                                            data: {
+                                                'target': 'families',
+                                                'action': 'delete',
+                                                'id': id
+                                            },
+                                            dataType: 'json',
+                                            success: function (data) {
+                                                del.child('message/small')
+                                                    .data(data.message);
+                                                if (data.success)
+                                                    main.child('modal')
+                                                        .on('click')
+                                                        .parent()
+                                                    .child('body/families/div/list')
+                                                        .remove(data.family.id)
+                                                ;
+                                            }
+                                        });
+                                    })
+                                )
+                            )
                             .on('show', function (e) {
-                                main.child('modal/block/modal/delete').css('display', 'block');
+                                var modal = main.child('modal/block/modal');
+                                modal.child('delete')
+                                    .css('display', 'block')
+                                    .key('name', e.detail.val)
+                                    .key('id', e.detail.id)
+                                    .child('message/family')
+                                        .data(e.detail.val)
+                                        .parent()
+                                ;
+                                if (!e.detail.owner)
+                                    modal.child('delete')
+                                        .child('title')
+                                            .data('Leave Family')
+                                            .parent()
+                                        .child('message/left')
+                                                .data('Are you sure you want to leave family ')
+                                                .parent()
+                                            .child('right')
+                                                .data('?')
+                                                .parent()
+                                            .child('small')
+                                                .data('(You will not have access to this family or any of its lists)')
+                                                .parent()
+                                    ;
+                                else modal.child('delete')
+                                    .child('title')
+                                        .data('Delete Family')
+                                        .parent()
+                                    .child('message/left')
+                                            .data('Are you sure you want to delete family ')
+                                            .parent()
+                                        .child('right')
+                                            .data(' and all its lists?')
+                                            .parent()
+                                        .child('small')
+                                            .data('(This family will be deleted for you and any other members)')
+                                            .parent()
+                                ;
                                 e.stopPropagation();
                             })
                             .on('hide', function (e) {
@@ -265,20 +343,21 @@ var pages = {
                 )
                 .on('page', function (e) {
                     var page = e.detail.page;
-                    var modal = main.child('modal/block/modal');
-                    if (modal.child(page) != null) {
-                        var children = modal.children();
+                    var submodal = main.child('modal/block/modal');
+                    if (submodal.child(page) != null) {
+                        var children = submodal.children();
                         for (var key in children)
                             children[key].on('hide')
                         children[page].on('show', e.detail.data);
                     }
                 })
                 .on('show', function (e) {
-                    main.child('modal').css('display', 'block');
+                    var modal = main.child('modal');
+                    modal.css('display', 'block');
                     setTimeout(function () {
-                        main.child('modal').css('opacity', '1');
+                        modal.css('opacity', '1');
                     }, 20);
-                    main.child('modal').on('page', e.detail);
+                    modal.on('page', e.detail);
                 })
                 .on('hide', function (e) {
                     if (e.detail.page != null && e.detail.page != undefined)

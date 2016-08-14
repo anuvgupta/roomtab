@@ -73,21 +73,21 @@ main
             modal
                 css
                     width 75%
-                    height 200px
+                    height 220px
                     margin 0 auto
                     margin-bottom 60px
                     border-radius 3px
                     background-color #FCFBF6
-                    box-shadow 0px 0px 60px 4px rgba(6, 5, 0, 0.35)
-                    -moz-box-shadow 0px 0px 60px 4px rgba(6, 5, 0, 0.35)
-                    -webkit-box-shadow 0px 0px 60px 4px rgba(6, 5, 0, 0.35)
+                    box-shadow 0px 0px 60px 4px rgba(6, 5, 0, 0.25)
+                    -moz-box-shadow 0px 0px 60px 4px rgba(6, 5, 0, 0.25)
+                    -webkit-box-shadow 0px 0px 60px 4px rgba(6, 5, 0, 0.25)
                 name
-                    text
+                    title
                         val Edit Name
                         css
                             display block
                             position absolute
-                            top 16px
+                            top 20px
                             width 100%
                             font-size 33px
                             font-weight bold
@@ -97,7 +97,7 @@ main
                             width 70%
                             height 50px
                             position absolute
-                            top 60px
+                            top 66px
                             left 0
                             right 0
                             margin 0 auto
@@ -109,7 +109,7 @@ main
                             position absolute
                             left 0
                             right 0
-                            bottom 62px
+                            top 128px
                             width 100%
                     options
                         cancel
@@ -130,7 +130,7 @@ main
                                 margin-left 15px
                         css
                             width 100%
-                            bottom 3px
+                            bottom 8px
                             position absolute
                     css
                         display none
@@ -138,15 +138,58 @@ main
                         height 100%
                         width 100%
                 delete
-                    text
+                    title
                         val Delete Family
                         css
                             display block
                             position absolute
-                            top 16px
+                            top 18px
                             width 100%
                             font-size 33px
                             font-weight bold
+                    message
+                        left
+                            val Left&nbsp;
+                        family
+                            val Family Name
+                            css
+                                font-size 24px
+                        right
+                            val &nbsp;Right?
+                        small
+                            val (Detail info)
+                            css
+                                font-size 14px
+                        css
+                            font-size 17px
+                            position absolute
+                            top 59px
+                            width 88%
+                            right 0
+                            left 0
+                            margin 0 auto
+                    options
+                        cancel
+                            name x
+                            css
+                                opacity 0.52
+                                height 50px
+                                width 50px
+                                display inline-block
+                                margin-right 15px
+                        confirm
+                            name check
+                            css
+                                opacity 0.52
+                                height 50px
+                                width 50px
+                                display inline-block
+                                margin-left 15px
+                        css
+                            position absolute
+                            bottom 3px
+                            margin 0 auto
+                            width 100%
                     css
                         display none
                         position relative
