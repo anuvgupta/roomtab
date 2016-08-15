@@ -1,4 +1,4 @@
-var blockroot = 'js/block/';
+var blockroot = 'block/';
 // custom blocks break, text, and image
 
 // define break block
