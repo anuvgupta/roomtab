@@ -259,13 +259,24 @@ Block = function () {
             return this;
         },
         on: function ($type, $callback) { // set event handler on current block
+            var $block = this;
             if (isType($type, 'string')) {
                 if (isType($callback, 'function')) {
                     if (isType(arguments[2], 'string')) {
-                        var $name = $type + '_' + arguments[2];
+                        var $id = arguments[2];
+                        var $name = $type + '_' + $id;
+                        if (!isType(events[$type], 'object'))
+                            events[$type] = { };
+                        events[$type][$id] = $callback;
                         element.addEventListener($name, $callback, false);
-                    }
-                    element.addEventListener($type, $callback, false);
+                        events[$name] = function ($e) {
+                            var $data = $e.detail;
+                            if (isType($e.detail, 'null') || isType($e.detail, 'undefined'))
+                                $block.on($type, $id);
+                            else $block.on($type, $id, $data);
+                        };
+                        element.addEventListener($type, events[$name], false);
+                    } else element.addEventListener($type, $callback, false);
                 } else {
                     if(isType($callback, 'string'))
                         $name = $type + '_' + $callback;
@@ -287,9 +298,19 @@ Block = function () {
             }
             return this;
         },
-        off: function ($event, $id) { // remove event handler from current block by id
-            var $callback = events[$event + '_' + $id];
-            if (isType($callback, 'function')) element.removeEventListener($event, $callback);
+        off: function ($type, $id) { // remove event handler from current block by id
+            var $callbackA = events[$type + '_' + $id];
+            var $callbackB = null;
+            if (!isType(events[$type], 'null') && !isType(events[$type], 'undefined'))
+                $callbackB = events[$type][$id];
+            if (isType($callbackA, 'function')) {
+                events[$type + '_' + $id] = null;
+                element.removeEventListener($type, $callbackA);
+            }
+            if (isType($callbackB, 'function')) {
+                events[$type][$id] = null;
+                element.removeEventListener($type, $callbackB);
+            }
             return this;
         },
         child: function ($marking) { // [recursively] get child of current block by marking

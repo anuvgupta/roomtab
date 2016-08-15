@@ -20,10 +20,22 @@ main
             text
                 val 1
         families
+            css
+                font-size 40px
+            message
+                block
+                    css
+                        font-size 28px
+                        margin 0 auto
+                        width 86%
+            div
+                css
+                    padding-top 10px
+                    width 100%
         lists
             css
-                font-size 25px
-            text1
+                font-size 28px
+            textA
                 val Click on the home
             home
                 width 33px
@@ -33,9 +45,9 @@ main
                     opacity 0.4
                     display inline-block
                     margin 0 5px -4px 5px
-            text2
+            textB
                 val icon
-            text3
+            textC
                 val to choose or create a family
                 css
                     display block

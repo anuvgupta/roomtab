@@ -69,7 +69,7 @@ Block('icon', function () {
             height: '33.5px',
             width: '33.5px',
             cursor: 'pointer',
-            'opacity': '0.4'
+            opacity: '0.4'
         })
     ;
     return block;
@@ -146,18 +146,18 @@ Block('login input', function () {
 Block('main button', function () {
     var block = Block('div')
         .css({
-            'height': '100%',
-            'opacity': '0.35',
-            'cursor': 'pointer',
-            'display': 'inline-block'
+            height: '100%',
+            opacity: '0.35',
+            cursor: 'pointer',
+            display: 'inline-block'
         })
         .__add(Block('block', 1)
             .css('height', '100%')
             .__add(Block('div', 1)
                 .css({
-                    'height': '55px',
-                    'width': '55px',
-                    'margin': '0 auto'
+                    height: '55px',
+                    width: '55px',
+                    margin: '0 auto'
                 })
                 .__add('image', 1)
             )
@@ -168,11 +168,12 @@ Block('main button', function () {
     var src = data('src');
     if (src != null && src != undefined)
         block.__child('block/div/image').data({ 'src': src });
-    block.css('width', (100 * (1/block.parent().childCount())) + '%');
-    block.__child('block/div/image').css({
-        'height': '100%',
-        'width': '100%'
-    });
+    block.css('width', (100 * (1/block.parent().childCount())) + '%')
+        .__child('block/div/image').css({
+            height: '100%',
+            width: '100%'
+        })
+    ;
     block.on('click', function () {
         var siblings = block.siblings();
         for (var key in siblings)
@@ -189,29 +190,30 @@ Block('main panel', function () {
     var block;
     block = Block('div')
         .css({
-            'display': 'none',
-            'position': 'relative',
-            'width': '100%',
-            'height': '100%'
+            display: 'none',
+            position: 'relative',
+            width: '100%',
+            height: '100%'
         })
         .__add(Block('block', 'title')
             .css({
-                'height': '70px',
-                'width': '100%',
-                'color': '#AEADA8',
-                'background-color': 'rgba(5, 5, 5, 0.06)'
+                height: '70px',
+                width: '100%',
+                color: '#AEADA8',
+                zIndex: '5',
+                backgroundColor: 'rgba(5, 5, 5, 0.06)'
             })
             .__add(Block('text', 1)
                 .css({
-                    'font-size': '46px',
-                    'text-transform': 'capitalize'
+                    fontSize: '46px',
+                    textTransform: 'capitalize'
                 })
             )
         )
         .__add(Block('block', 1)
             .css({
-                'padding-bottom': '70px',
-                'overflow-y': 'scroll'
+                paddingBottom: '70px',
+                overflowY: 'scroll'
             })
         )
     ;
@@ -229,27 +231,27 @@ Block('main family', function () {
     var open = false;
     block = Block('block')
         .css({
-            'width': '86%',
-            'height': '54px',
-            'border-radius': '5px',
-            'background-color': 'rgba(10, 10, 10, 0.04)',
-            'margin': '10px auto',
-            'font-size': '32px',
-            'transition': 'height 0.44s ease',
+            width: '86%',
+            height: '54px',
+            borderRadius: '5px',
+            backgroundColor: 'rgba(10, 10, 10, 0.04)',
+            margin: '10px auto',
+            fontSize: '32px',
+            transition: 'height 0.44s ease',
             '-moz-transition': 'height 0.44s ease',
             '-webkit-transition': 'height 0.44s ease'
         })
         .__child('content')
             .css({
-                'text-align': 'left',
-                'position': 'relative'
+                textAlign: 'left',
+                position: 'relative'
             })
             .__parent()
         .add(Block('text', 1)
             .css({
-                'position': 'absolute',
-                'left': '25px',
-                'top': '10px'
+                position: 'absolute',
+                left: '25px',
+                top: '10px'
             })
         )
         .add(Block('icon', 'arrow')
@@ -262,12 +264,12 @@ Block('main family', function () {
                 width: '34px',
                 height: '34px',
                 css: {
-                    'opacity': '0.4',
-                    'position': 'absolute',
-                    'right': '20px',
-                    'top': '10px',
-                    'transform': 'rotate(0deg)',
-                    'transition': 'top 0.46s ease, transform 0.3s ease-in-out, -webkit-transform 0.3s ease-in-out',
+                    opacity: '0.4',
+                    position: 'absolute',
+                    right: '20px',
+                    top: '12px',
+                    transform: 'rotate(0deg)',
+                    transition: 'top 0.46s ease, transform 0.3s ease-in-out, -webkit-transform 0.3s ease-in-out',
                     '-moz-transition': 'top 0.46s ease, -moz-transform 0.3s ease-in-out',
                     '-webkit-transition': 'top 0.46s ease, -webkit-transform 0.3s ease-in-out',
                 }
@@ -275,7 +277,7 @@ Block('main family', function () {
         )
         .add(Block('icon', 'delete')
             .on('click', function () {
-                block.parent(4).child('modal').on('show', {
+                block.parent(5).child('modal').on('show', {
                     page: 'delete',
                     data: {
                         id: block.key('id'),
@@ -287,12 +289,12 @@ Block('main family', function () {
             .data({
                 name: 'delete',
                 css: {
-                    'opacity': '0',
-                    'display': 'none',
-                    'position': 'absolute',
-                    'right': '20px',
-                    'top': '10px',
-                    'transition': 'opacity 0.3s ease',
+                    opacity: '0',
+                    display: 'none',
+                    position: 'absolute',
+                    right: '20px',
+                    top: '11px',
+                    transition: 'opacity 0.3s ease',
                     '-moz-transition': 'opacity 0.3s ease',
                     '-webkit-transition': 'opacity 0.3s ease',
                 }
@@ -300,7 +302,7 @@ Block('main family', function () {
         )
         .add(Block('icon', 'edit')
             .on('click', function () {
-                block.parent(4).child('modal').on('show', {
+                block.parent(5).child('modal').on('show', {
                     page: 'name',
                     data: {
                         id: block.key('id'),
@@ -311,12 +313,12 @@ Block('main family', function () {
             .data({
                 name: 'edit',
                 css: {
-                    'opacity': '0',
-                    'display': 'none',
-                    'position': 'absolute',
-                    'right': '60px',
-                    'top': '10px',
-                    'transition': 'opacity 0.3s ease',
+                    opacity: '0',
+                    display: 'none',
+                    position: 'absolute',
+                    right: '60px',
+                    top: '10px',
+                    transition: 'opacity 0.3s ease',
                     '-moz-transition': 'opacity 0.3s ease',
                     '-webkit-transition': 'opacity 0.3s ease',
                 }
@@ -332,25 +334,29 @@ Block('main family', function () {
                     .css({
                         opacity: '0.4',
                         transform: 'rotate(180deg)',
-                        top: '130px'
+                        top: '128px'
                     })
                     .parent()
                 .child('edit')
                     .css({
-                        'display': 'inline-block',
-                        'opacity': '0'
+                        display: 'inline-block',
+                        opacity: '0'
                     })
                     .parent()
                 .child('delete')
                     .css({
-                        'display': 'inline-block',
-                        'opacity': '0'
+                        display: 'inline-block',
+                        opacity: '0'
                     })
                     .parent()
             ;
             setTimeout(function () {
-                block.child('edit').css('opacity', '0.37');
-                block.child('delete').css('opacity', '0.37');
+                block.child('edit')
+                        .css('opacity', '0.37')
+                        .parent()
+                    .child('delete')
+                        .css('opacity', '0.37')
+                ;
             }, 20);
         })
         .on('close', function () {
@@ -363,7 +369,7 @@ Block('main family', function () {
                     .css({
                         opacity: '0.4',
                         transform: 'rotate(0deg)',
-                        top: '10px'
+                        top: '12px'
                     })
                     .parent()
                 .child('edit')
@@ -374,24 +380,28 @@ Block('main family', function () {
                     .parent()
             ;
             setTimeout(function () {
-                block.child('edit').css('display', 'none');
-                block.child('delete').css('display', 'none');
+                block
+                    .child('edit')
+                        .css('display', 'none')
+                        .parent()
+                    .child('delete')
+                        .css('display', 'none')
+                ;
             }, 300);
         })
         .__add(Block('div', 'bar')
             .css({
-                'opacity': '0',
-                'position': 'absolute',
-                'top': '0',
-                'left': '0',
-                'right': '60px',
-                'height': '50px',
-                'border-radius': '5px',
-                'cursor': 'pointer',
+                opacity: '0',
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                right: '60px',
+                height: '50px',
+                borderRadius: '5px',
+                cursor: 'pointer',
             })
             .on('click', function () {
-                if (open) block.on('close');
-                else block.on('open');
+                block.child('arrow').on('click');
             })
         )
     ;
@@ -405,5 +415,7 @@ Block('main family', function () {
     if (owner === true) block.key('owner', true);
     else if (owner === false)
         block.key('owner', false)
-            .child('delete').data({ name: 'exit' });
+            .child('delete')
+                .data({ name: 'exit' })
+        ;
 });

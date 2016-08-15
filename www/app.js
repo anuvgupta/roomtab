@@ -27,10 +27,10 @@ var pages = {
                 url: 'index.php',
                 type: 'POST',
                 data: {
-                    'target': target,
-                    'action': action,
-                    'username': username,
-                    'password': password
+                    target: target,
+                    action: action,
+                    username: username,
+                    password: password
                 },
                 dataType: 'json',
                 success: function (data) {
@@ -100,7 +100,11 @@ var pages = {
             $.ajax({
                 url: 'index.php',
                 type: 'POST',
-                data: { 'target': 'page', 'action': 'set', 'page': page },
+                data: {
+                    target: 'page',
+                    action: 'set',
+                    page: page
+                },
                 dataType: 'text'
             });
         }
@@ -110,21 +114,21 @@ var pages = {
                     .add('text', 1)
                 )
                 .add(Block('main panel', 'families')
-                    .__child('block')
-                        .__child('content')
-                            .css('display', 'block')
-                            .__parent()
-                        .css('padding-top', '10px')
-                        .__parent()
-                    .add(Block('div', 1)
-                        .add('text', 1)
+                    .add(Block('block', 'message')
+                        .add(Block('block', 1)
+                            .add('text', 'textA')
+                            .add('break')
+                            .add('text', 'textB')
+                            .__add('block', 'new')
+                        )
                     )
+                    .add('div', 1)
                 )
                 .add(Block('main panel', 'lists')
-                    .add('text', 'text1')
+                    .add('text', 'textA')
                     .add('image', 'home')
-                    .add('text', 'text2')
-                    .add('text', 'text3')
+                    .add('text', 'textB')
+                    .add('text', 'textC')
                 )
             )
             .add(Block('div', 'footer')
@@ -138,15 +142,78 @@ var pages = {
                         $.ajax({
                             url: 'index.php',
                             type: 'POST',
-                            data: { 'target': 'families', 'action': 'load', 'page': page },
+                            data: {
+                                'target': 'families',
+                                'action': 'load',
+                                'page': page
+                            },
                             dataType: 'json',
                             success: function (data) {
-                                var block;
+                                var families = main.child('body/families');
+                                var textblock = function (text) {
+                                    families
+                                        .__child('block/content')
+                                            .css('display', 'table-cell')
+                                            .__parent(1)
+                                        .child('div')
+                                            .css('display', 'none')
+                                            .parent()
+                                        .child('message')
+                                            .css('display', 'table')
+                                            .child('block/textA')
+                                                .data(text)
+                                                .parent(1)
+                                            .child('block/textB')
+                                                .data((arguments[1] != null && arguments[1] != undefined && typeof arguments[1] === 'string') ? arguments[1] : '')
+                                                .parent(1)
+                                            .child('block')
+                                                .__remove('new')
+                                                .__add(Block('block', 'new')
+                                                    .css({
+                                                        width: '50%',
+                                                        height: '20px',
+                                                        margin: '0 auto'
+                                                    })
+                                                    .add(Block('icon', 1)
+                                                        .data({
+                                                            name: 'plus',
+                                                            height: '52px',
+                                                            width: '52px',
+                                                            css: {
+                                                                opacity: '0.4',
+                                                                display: 'block',
+                                                                margin: '0 auto'
+                                                            }
+                                                        })
+                                                    )
+                                                    .on('click', function () {
+                                                        console.log('textblock');
+                                                        // $.ajax({
+                                                        //     url: 'index.php',
+                                                        //     type: 'POST',
+                                                        //     data: {
+                                                        //         'target': 'families',
+                                                        //         'action': 'add',
+                                                        //         'page': page
+                                                        //     },
+                                                        // });
+                                                    })
+                                                )
+                                                .__parent()
+                                    ;
+                                };
                                 if (data.success) {
-                                    if (data.families != null && data.families.length > 0) {
-                                        block = Block('div', 'list');
+                                    if (data.families == null || data.families == undefined) {
+                                        if (data.message == 'No families')
+                                            textblock('No families found.', 'Create a new one or have a friend add you.');
+                                        else if (data.message == null || data.message == undefined)
+                                            textblock('Unknown error');
+                                        else textblock(data.message);
+                                    } else if (data.families.length > 0) {
+                                        var block = Block('div', 'div2');
+                                        var list = Block('div', 'list');
                                         for (var i in data.families)
-                                            block
+                                            list
                                                 .add(Block('main family', data.families[i]['id'])
                                                     .data({
                                                         num: parseInt(i) + 1,
@@ -156,9 +223,48 @@ var pages = {
                                                     })
                                                 )
                                             ;
-                                    } else ; //show error data.message
-                                } else ; //show error data.message
-                                main.child('body/families/div').empty().add(block);
+                                        families
+                                            .__child('block/content')
+                                                .css('display', 'block')
+                                                .__parent(1)
+                                            .child('message')
+                                                .css('display', 'none')
+                                                .parent()
+                                            .child('div')
+                                                .css('display', 'block')
+                                                .empty()
+                                                .add(block
+                                                    .add(list)
+                                                    .add(Block('block', 'new')
+                                                        .css({
+                                                            width: '50%',
+                                                            height: '20px',
+                                                            margin: '0 auto'
+                                                        })
+                                                        .add(Block('icon', 1)
+                                                            .data({
+                                                                name: 'plus',
+                                                                height: '52px',
+                                                                width: '52px',
+                                                                css: {
+                                                                    opacity: '0.4',
+                                                                    display: 'block',
+                                                                    margin: '0 auto'
+                                                                }
+                                                            })
+                                                        )
+                                                        .on('click', function () {
+                                                            console.log('listblock');
+                                                        })
+                                                    )
+                                                )
+                                        ;
+                                    }
+                                } else {
+                                    if (data.message == null || data.message == undefined)
+                                        textblock('Unknown error');
+                                    else textblock(data.message);
+                                }
                             }
                         });
                         setpage('families');
@@ -191,14 +297,14 @@ var pages = {
                                 .add(Block('icon', 'confirm')
                                     .on('click', function () {
                                         var name = main.child('modal/block/modal/name');
-                                        var val = main.child('modal/block/modal/name/input').node().value;
+                                        var val = name.child('input').node().value;
                                         var id = name.key('id');
                                         var fail = function (message) {
-                                            main.child('modal/block/modal/name/input').css('animation', 'shake 0.72s');
+                                            name.child('input').css('animation', 'shake 0.72s');
                                             setTimeout(function () {
-                                                main.child('modal/block/modal/name/input').css('animation', 'none');
+                                                name.child('input').css('animation', 'none');
                                             }, 720);
-                                            main.child('modal/block/modal/name/message').data(message);
+                                            name.child('message').data(message);
                                         };
                                         if (val == null || val == '' || val.trim() == '')
                                             fail('Name cannot be empty');
@@ -207,18 +313,18 @@ var pages = {
                                                 url: 'index.php',
                                                 type: 'POST',
                                                 data: {
-                                                    'target': 'families',
-                                                    'action': 'edit',
-                                                    'id': id,
-                                                    'name': val
+                                                    target: 'families',
+                                                    action: 'edit',
+                                                    id: id,
+                                                    name: val
                                                 },
                                                 dataType: 'json',
                                                 success: function (data) {
                                                     if (!data.success)
                                                         fail(data.message);
                                                     else {
-                                                        main.child('modal/block/modal/name/message').data(data.message);
-                                                        main.child('body/families/div/list/' + data.id).data(data.name);
+                                                        name.child('message').data(data.message);
+                                                        main.child('body/families/div/div2/list/' + data.id).data(data.name);
                                                         main.child('modal').on('click');
                                                     }
                                                 }
@@ -270,21 +376,22 @@ var pages = {
                                             url: 'index.php',
                                             type: 'POST',
                                             data: {
-                                                'target': 'families',
-                                                'action': 'delete',
-                                                'id': id
+                                                target: 'families',
+                                                action: 'delete',
+                                                id: id
                                             },
                                             dataType: 'json',
                                             success: function (data) {
                                                 del.child('message/small')
                                                     .data(data.message);
-                                                if (data.success)
-                                                    main.child('modal')
-                                                        .on('click')
-                                                        .parent()
-                                                    .child('body/families/div/list')
-                                                        .remove(data.family.id)
-                                                ;
+                                                if (data.success) {
+                                                    main.child('modal').on('click');
+                                                    var families = main.child('body/families/div/div2/list');
+                                                    if (families.child(data.family.id) != null)
+                                                        families.remove(data.family.id);
+                                                    if (families.childCount() <= 0)
+                                                        main.child('footer/families').on('click');
+                                                }
                                             }
                                         });
                                     })
@@ -381,11 +488,16 @@ var pages = {
         ;
         var page = (subpage == null) ? defaultsp : subpage;
         main.child('footer/' + page).on('click');
-        main.child('modal').on('show', { page: 'delete' });
     },
-    'profile': function () { pages['main']('profile'); },
-    'families': function () { pages['main']('families'); },
-    'lists': function () { pages['main']('lists'); }
+    'profile': function () {
+        pages['main']('profile');
+    },
+    'families': function () {
+        pages['main']('families');
+    },
+    'lists': function () {
+        pages['main']('lists');
+    }
 };
 
 $(document).ready(function () {
