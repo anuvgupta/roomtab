@@ -51,6 +51,7 @@
 * {
     font-family: Fontin;
 	color: #B0AFAA;
+	overflow: hidden;
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
@@ -75,6 +76,8 @@ body {
 	transition: opacity 1s;
 	-moz-transition: opacity 1s;
 	-webkit-transition: opacity 1s;
+	height: 100%;
+	position: fixed;
 }
 
 ::selection {

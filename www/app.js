@@ -105,7 +105,10 @@ var pages = {
                     action: 'set',
                     page: page
                 },
-                dataType: 'text'
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data.message);
+                }
             });
         }
         main
@@ -150,7 +153,8 @@ var pages = {
                             dataType: 'json',
                             success: function (data) {
                                 var families = main.child('body/families');
-                                var textblock = function (text) {
+                                var textblock;
+                                textblock = function (text) {
                                     families
                                         .__child('block/content')
                                             .css('display', 'table-cell')
@@ -187,16 +191,22 @@ var pages = {
                                                         })
                                                     )
                                                     .on('click', function () {
-                                                        console.log('textblock');
-                                                        // $.ajax({
-                                                        //     url: 'index.php',
-                                                        //     type: 'POST',
-                                                        //     data: {
-                                                        //         'target': 'families',
-                                                        //         'action': 'add',
-                                                        //         'page': page
-                                                        //     },
-                                                        // });
+                                                        $.ajax({
+                                                            url: 'index.php',
+                                                            type: 'POST',
+                                                            data: {
+                                                                target: 'families',
+                                                                action: 'add'
+                                                            },
+                                                            dataType: 'json',
+                                                            success: function (data) {
+                                                                if (!data.success) {
+                                                                    if (data.message != null && data.message != undefined)
+                                                                        textblock('Unknown error');
+                                                                    else textblock('Error adding family', data.message);
+                                                                } else main.child('footer/families').on('click');
+                                                            }
+                                                        });
                                                     })
                                                 )
                                                 .__parent()
@@ -210,7 +220,10 @@ var pages = {
                                             textblock('Unknown error');
                                         else textblock(data.message);
                                     } else if (data.families.length > 0) {
-                                        var block = Block('div', 'div2');
+                                        var block = Block('div', 'div2').css({
+                                            overflowY: 'auto',
+                                            height: (window.innerHeight * 0.75).toString() + 'px'
+                                        });
                                         var list = Block('div', 'list');
                                         for (var i in data.families)
                                             list
@@ -254,10 +267,47 @@ var pages = {
                                                             })
                                                         )
                                                         .on('click', function () {
-                                                            console.log('listblock');
+                                                            $.ajax({
+                                                                url: 'index.php',
+                                                                type: 'POST',
+                                                                data: {
+                                                                    target: 'families',
+                                                                    action: 'add'
+                                                                },
+                                                                dataType: 'json',
+                                                                success: function (data) {
+                                                                    if (!data.success) {
+                                                                        if (data.message != null && data.message != undefined)
+                                                                            textblock('Unknown error');
+                                                                        else textblock('Error adding family', data.message);
+                                                                    } else {
+                                                                        list.add(Block('main family', data.id)
+                                                                            .data({
+                                                                                num: list.childCount() + 1,
+                                                                                id: data.id,
+                                                                                val: data.name,
+                                                                                owner: true,
+                                                                                css: {
+                                                                                    opacity: '0',
+                                                                                }
+                                                                            })
+                                                                            .on('show', function (e) {
+                                                                                setTimeout(function () {
+                                                                                    list.child(data.id)
+                                                                                        .css('opacity', '1')
+                                                                                    ;
+                                                                                }, 20);
+                                                                                e.stopPropagation();
+                                                                            })
+                                                                            .on('show')
+                                                                        )
+                                                                    }
+                                                                }
+                                                            });
                                                         })
                                                     )
                                                 )
+                                            .parent()
                                         ;
                                     }
                                 } else {

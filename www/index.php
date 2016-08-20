@@ -1,4 +1,4 @@
-<?php require('../server.php'); ?>
+<?php require('../https.php'); require('../server.php'); ?>
 <!DOCTYPE html>
 <html>
     <head>

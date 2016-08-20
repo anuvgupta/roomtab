@@ -29,10 +29,9 @@ function id($table = null, $length = 10) {
             $sql = "SELECT * FROM `$table` WHERE `id` = '$key'";
             if(!$result = $db->query($sql))
                 fail("Error running query [$db->error]");
-            if ($result->num_rows == 0) {
-                $result->free();
-                break;
-            } else $result->free();;
+            $num_rows = $result->num_rows;
+            $result->free();
+            if ($num_rows == 0) break;
         }
     } else {
         $key = '';
@@ -46,24 +45,20 @@ function id($table = null, $length = 10) {
 function validateSession() {
     global $db, $pages;
     if (@$_SESSION['active'] && isset($_SESSION['username']) && isset($_SESSION['password'])) {
-        $username = $db->real_escape_string($_SESSION['username']);
+        $username = strtolower($db->real_escape_string($_SESSION['username']));
         $password = $db->real_escape_string($_SESSION['password']);
         $sql = "SELECT * FROM `users` WHERE `username` = '$username' AND `password` = '$password'";
         if(!$result = $db->query($sql))
             return ['valid' => false, 'message' => "Error running query [$db->error]"];
         if ($result->num_rows != 1) {
             return ['valid' => false, 'message' => 'Invalid session'];
-        } else {
-            if (!isset($_SESSION['page']) || !in_array($_SESSION['page'], $pages) || $_SESSION['page'] == 'login')
-                $_SESSION['page'] = 'main';
-            return ['valid' => true, 'message' => 'Valid session', 'data' => ['page' => $_SESSION['page']]];
-        }
-    } else {
-        $_SESSION['page'] = 'login';
-        return ['valid' => false];
+        } elseif (!isset($_SESSION['page']) || !in_array($_SESSION['page'], $pages) || $_SESSION['page'] == 'login')
+            $_SESSION['page'] = 'main';
+        return ['valid' => true, 'message' => 'Valid session', 'data' => ['page' => $_SESSION['page']]];
     }
+    $_SESSION['page'] = 'login';
+    return ['valid' => false];
 }
-$auth = validateSession();
 
 function fail($message = null, $data = null) {
     global $db, $response;
@@ -91,6 +86,7 @@ function succeed($message = null, $data = null) {
     die();
 }
 
+$auth = validateSession();
 if(!isset($_POST['target'])) echo '';
 elseif($_POST['target'] == 'active') {
     if ($auth['valid'])
@@ -140,7 +136,7 @@ elseif($_POST['target'] == 'active') {
     }
     if (!$response['success']) succeed(null, ['page' => 'main']);
 
-    $username = $db->real_escape_string($username);
+    $username = strtolower($db->real_escape_string($username));
     $password = md5($db->real_escape_string($password));
     if ($_POST['action'] == 'in') {
         $sql = "SELECT * FROM `users` WHERE `username` = '$username'";
@@ -185,7 +181,7 @@ elseif($_POST['target'] == 'active') {
         fail('Invalid session');
     else if (!isset($_POST['action']))
         fail('Invalid request (action)');
-    $username = (isset($_SESSION['username'])) ? $db->real_escape_string($_SESSION['username']) : fail('Invalid username');
+    $username = (isset($_SESSION['username'])) ? strtolower($db->real_escape_string($_SESSION['username'])) : fail('Invalid username');
     $password = (isset($_SESSION['password'])) ? $db->real_escape_string($_SESSION['password']) : fail('Invalid password');
     if ($_POST['action'] == 'load') {
         $families = [];
@@ -201,7 +197,11 @@ elseif($_POST['target'] == 'active') {
         if (count($families) <= 0) succeed('No families');
         else succeed('Found families', ['families' => $families, 'username' => $username]);
     } elseif ($_POST['action'] == 'add') {
-
+        $newID = id('families');
+        $sql = "INSERT INTO `families` VALUES ('$newID', 'New Family', '$username', '')";
+        if(!$result = $db->query($sql))
+            fail("Error running query [$db->error]");
+        succeed('Family added', ['id' => $newID, 'name' => 'New Family']);
     } elseif ($_POST['action'] == 'edit') {
         $id = @$_POST['id'];
         $name = @$_POST['name'];

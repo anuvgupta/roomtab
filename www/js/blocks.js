@@ -1,31 +1,24 @@
 var blockroot = 'block/';
-// custom blocks break, text, and image
 
-// define break block
-Block('break', function () { //function to create break block
-    var block = Block('span'); //start off with a span block
-    block.__add(Block('br')); //add a line break to the span
-    return block; //return the newly modified block
-}, function (block, data) { //function to load data into break block
-    var value = data('val'); //get block data 'val' (amount of breaks)
-    if (value !== null) { //if val is null, don't change block
-        //else add that many extra line breaks
+Block('break', function () {
+    var block = Block('span');
+    block.__add(Block('br'));
+    return block;
+}, function (block, data) {
+    var value = data('val');
+    if (value !== null) {
         for (var i = 1; i < value; i++) block.__add(Block('br'));
     }
-    //prevent blocks from being added to this block
     block.add = function () {
-        return block; //return block to allow chaining
+        return block;
     };
 });
 
-// define text block
-Block('text', function () { //function to create text block
-    var block = Block('span'); //start off with a span block
-    //until data is loaded, span is blank, so do nothing
-    return block; //return the newly modified block
-}, function (block, data) { //function to load data into text block
-    var val = data('val'); //get data 'val' (text of span)
-    // if val is not null, add text to text block
+Block('text', function () {
+    var block = Block('span');
+    return block;
+}, function (block, data) {
+    var val = data('val');
     if (val != null) {
         block.node().innerHTML = '';
         block.node().appendChild(document.createTextNode(val.replace('&nbsp;', ' ')));
@@ -229,17 +222,21 @@ Block('main panel', function () {
 Block('main family', function () {
     var block;
     var open = false;
+    var openHeight = '170px';
+    var closedHeight = '54px';
     block = Block('block')
+        .key('openHeight', openHeight)
+        .key('closedHeight', closedHeight)
         .css({
             width: '86%',
-            height: '54px',
+            height: closedHeight,
             borderRadius: '5px',
             backgroundColor: 'rgba(10, 10, 10, 0.04)',
             margin: '10px auto',
             fontSize: '32px',
-            transition: 'height 0.44s ease',
-            '-moz-transition': 'height 0.44s ease',
-            '-webkit-transition': 'height 0.44s ease'
+            transition: 'height 0.44s ease, opacity 0.2s ease',
+            '-moz-transition': 'height 0.44s ease, opacity 0.2s ease',
+            '-webkit-transition': 'height 0.44s ease, opacity 0.2s ease'
         })
         .__child('content')
             .css({
@@ -251,7 +248,10 @@ Block('main family', function () {
             .css({
                 position: 'absolute',
                 left: '25px',
-                top: '10px'
+                top: '10px',
+                transition: 'opacity 0.45s ease',
+                '-moz-transition': 'opacity 0.45s ease',
+                '-webkit-transition': 'opacity 0.45s ease'
             })
         )
         .add(Block('icon', 'arrow')
@@ -269,9 +269,9 @@ Block('main family', function () {
                     right: '20px',
                     top: '12px',
                     transform: 'rotate(0deg)',
-                    transition: 'top 0.46s ease, transform 0.3s ease-in-out, -webkit-transform 0.3s ease-in-out',
-                    '-moz-transition': 'top 0.46s ease, -moz-transform 0.3s ease-in-out',
-                    '-webkit-transition': 'top 0.46s ease, -webkit-transform 0.3s ease-in-out',
+                    transition: 'top 0.46s ease, opacity 0.45s ease, transform 0.3s ease-in-out, -webkit-transform 0.3s ease-in-out',
+                    '-moz-transition': 'top 0.46s ease, opacity 0.45s ease, -moz-transform 0.3s ease-in-out',
+                    '-webkit-transition': 'top 0.46s ease, opacity 0.45s ease, -webkit-transform 0.3s ease-in-out',
                 }
             })
         )
@@ -326,7 +326,7 @@ Block('main family', function () {
         )
         .on('open', function () {
             open = true;
-            block.css('height', '170px')
+            block.css('height', openHeight)
                 .__child('bar')
                     .css('right', '105px')
                     .__parent()
@@ -361,7 +361,7 @@ Block('main family', function () {
         })
         .on('close', function () {
             open = false;
-            block.css('height', '54px')
+            block.css('height', closedHeight)
                 .__child('bar')
                     .css('right', '55px')
                     .__parent()
