@@ -1,6 +1,6 @@
 /*
  block.js v2.0
- (c) 2016 Anuv Gupta [http://anuv.tk/block.js]
+ (c) 2016 Anuv Gupta [http://anuv.me/block.js]
  License: MIT
 */
 
