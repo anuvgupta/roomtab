@@ -282,7 +282,7 @@ Block('main family', function () {
                     data: {
                         id: block.key('id'),
                         owner: block.key('owner'),
-                        val: block.child('text').node().innerHTML
+                        val: block.key('name')
                     }
                 });
             })
@@ -306,7 +306,7 @@ Block('main family', function () {
                     page: 'name',
                     data: {
                         id: block.key('id'),
-                        val: block.child('text').node().innerHTML
+                        val: block.key('name')
                     }
                 });
             })
@@ -324,6 +324,75 @@ Block('main family', function () {
                 }
             })
         )
+        .add(Block('block', 'list')
+            .add(Block('image')
+                .data({
+                    src: 'img/list4.png',
+                    width: '50px',
+                    height: '50px',
+                    css: {
+                        margin: '0 auto',
+                        opacity: '0.45'
+                    }
+                })
+            )
+            .add(Block('text')
+                .data('Lists')
+                .css({
+                    textTransform: 'uppercase',
+                    fontSize: '22px',
+                    color: '#A2A19E'
+                })
+            )
+            .css({
+                position: 'absolute',
+                left: '40px',
+                top: '60px',
+                minWidth: '100px',
+                width: '30%',
+                height: 'auto',
+                cursor: 'pointer'
+            })
+        )
+        .add(Block('block', 'share')
+            .add(Block('image')
+                .data({
+                    src: 'img/share.png',
+                    width: '50px',
+                    height: '50px',
+                    css: {
+                        margin: '0 auto',
+                        opacity: '0.45'
+                    }
+                })
+            )
+            .add(Block('text')
+                .data('Share')
+                .css({
+                    textTransform: 'uppercase',
+                    fontSize: '22px',
+                    color: '#A2A19E'
+                })
+            )
+            .on('click', function () {
+                block.parent(5).child('modal').on('show', {
+                    page: 'share',
+                    data: {
+                        id: block.key('id'),
+                        val: block.key('name')
+                    }
+                });
+            })
+            .css({
+                position: 'absolute',
+                right: '95px',
+                top: '60px',
+                minWidth: '120px',
+                width: '35%',
+                height: 'auto',
+                cursor: 'pointer'
+            })
+        )
         .on('open', function () {
             open = true;
             block.css('height', openHeight)
@@ -334,27 +403,23 @@ Block('main family', function () {
                     .css({
                         opacity: '0.4',
                         transform: 'rotate(180deg)',
-                        top: '128px'
+                        top: '126px'
                     })
-                    .parent()
-                .child('edit')
+                .sibling('edit')
                     .css({
                         display: 'inline-block',
                         opacity: '0'
                     })
-                    .parent()
-                .child('delete')
+                .sibling('delete')
                     .css({
                         display: 'inline-block',
                         opacity: '0'
                     })
-                    .parent()
             ;
             setTimeout(function () {
                 block.child('edit')
                         .css('opacity', '0.37')
-                        .parent()
-                    .child('delete')
+                    .sibling('delete')
                         .css('opacity', '0.37')
                 ;
             }, 20);
@@ -371,20 +436,16 @@ Block('main family', function () {
                         transform: 'rotate(0deg)',
                         top: '12px'
                     })
-                    .parent()
-                .child('edit')
+                .sibling('edit')
                     .css('opacity', '0')
-                    .parent()
-                .child('delete')
+                .sibling('delete')
                     .css('opacity', '0')
-                    .parent()
             ;
             setTimeout(function () {
                 block
                     .child('edit')
                         .css('display', 'none')
-                        .parent()
-                    .child('delete')
+                    .sibling('delete')
                         .css('display', 'none')
                 ;
             }, 300);
@@ -408,7 +469,11 @@ Block('main family', function () {
     return block;
 }, function (block, data, css) {
     var val = data('val');
-    if (val != null) block.child('text').data(val);
+    if (val != null) {
+        block.key('name', val)
+            .child('text').data(val)
+        ;
+    }
     var id = data('id');
     if (id != null) block.key('id', id);
     var owner = data('owner');

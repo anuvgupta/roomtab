@@ -95,7 +95,7 @@ var pages = {
         var main = Block('div', 'main');
         var defaultsp = 'families';
         var subpage = arguments[0];
-        function setpage(page) {
+        var setpage  = function (page) {
             main.key('currentPage', page);
             $.ajax({
                 url: 'index.php',
@@ -110,7 +110,7 @@ var pages = {
                     console.log(data.message);
                 }
             });
-        }
+        };
         main
             .add(Block('div', 'body')
                 .add(Block('main panel', 'profile')
@@ -146,9 +146,9 @@ var pages = {
                             url: 'index.php',
                             type: 'POST',
                             data: {
-                                'target': 'families',
-                                'action': 'load',
-                                'page': page
+                                target: 'families',
+                                action: 'load',
+                                page: page
                             },
                             dataType: 'json',
                             success: function (data) {
@@ -232,7 +232,7 @@ var pages = {
                                                         num: parseInt(i) + 1,
                                                         id: data.families[i]['id'],
                                                         val: data.families[i]['name'],
-                                                        owner: (data.families[i]['owner'] === data.username)
+                                                        owner: (data.families[i]['owner'] === data.uid)
                                                     })
                                                 )
                                             ;
@@ -455,36 +455,27 @@ var pages = {
                                     .key('id', e.detail.id)
                                     .child('message/family')
                                         .data(e.detail.val)
-                                        .parent()
                                 ;
                                 if (!e.detail.owner)
                                     modal.child('delete')
                                         .child('title')
                                             .data('Leave Family')
-                                            .parent()
-                                        .child('message/left')
+                                        .sibling('message/left')
                                                 .data('Are you sure you want to leave family ')
-                                                .parent()
-                                            .child('right')
+                                            .sibling('right')
                                                 .data('?')
-                                                .parent()
-                                            .child('small')
+                                            .sibling('small')
                                                 .data('(You will not have access to this family or any of its lists)')
-                                                .parent()
                                     ;
                                 else modal.child('delete')
                                     .child('title')
                                         .data('Delete Family')
-                                        .parent()
-                                    .child('message/left')
+                                    .sibling('message/left')
                                             .data('Are you sure you want to delete family ')
-                                            .parent()
-                                        .child('right')
+                                        .sibling('right')
                                             .data(' and all its lists?')
-                                            .parent()
-                                        .child('small')
+                                        .sibling('small')
                                             .data('(This family will be deleted for you and any other members)')
-                                            .parent()
                                 ;
                                 e.stopPropagation();
                             })

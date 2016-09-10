@@ -164,7 +164,7 @@ elseif($_POST['target'] == 'active') {
         if(!$result = $db->query($sql))
             fail("Error running query [$db->error]");
         if ($result->num_rows > 0)
-            fail("Username not available");
+            fail('Username not available');
         $result->free();
 
         $id = id('users');
@@ -183,22 +183,29 @@ elseif($_POST['target'] == 'active') {
         fail('Invalid request (action)');
     $username = (isset($_SESSION['username'])) ? strtolower($db->real_escape_string($_SESSION['username'])) : fail('Invalid username');
     $password = (isset($_SESSION['password'])) ? $db->real_escape_string($_SESSION['password']) : fail('Invalid password');
+    $uid = '';
+    $uidsql = "SELECT * FROM `users` WHERE `username` = '$username'";
+    if(!$uidresult = $db->query($uidsql))
+        fail("Error running query [$db->error]");
+    if ($uidresult->num_rows == 1) {
+        $uid = $uidresult->fetch_assoc()['id'];
+    } else fail('Username not found');
     if ($_POST['action'] == 'load') {
         $families = [];
-        $sql = "SELECT * FROM `families` WHERE `owner` = '$username' OR `users` LIKE '%$username%'";
+        $sql = "SELECT * FROM `families` WHERE `owner` = '$uid' OR `users` LIKE '%$uid%'";
         if(!$result = $db->query($sql))
             fail("Error running query [$db->error]");
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-                if ($row['owner'] == $username || in_array($username, explode(',', $row['users'])))
+                if ($row['owner'] == $uid || in_array($uid, explode(',', $row['users'])))
                     array_push($families, $row);
             }
         }
         if (count($families) <= 0) succeed('No families');
-        else succeed('Found families', ['families' => $families, 'username' => $username]);
+        else succeed('Found families', ['families' => $families, 'username' => $username, 'uid' => $uid]);
     } elseif ($_POST['action'] == 'add') {
         $newID = id('families');
-        $sql = "INSERT INTO `families` VALUES ('$newID', 'New Family', '$username', '')";
+        $sql = "INSERT INTO `families` VALUES ('$newID', 'New Family', '$uid', '')";
         if(!$result = $db->query($sql))
             fail("Error running query [$db->error]");
         succeed('Family added', ['id' => $newID, 'name' => 'New Family']);
@@ -209,7 +216,7 @@ elseif($_POST['target'] == 'active') {
         elseif (!isset($name)) fail('Name cannot be empty');
         $id = $db->real_escape_string($id);
         $name_safe = $db->real_escape_string($name);
-        $sql = "SELECT * FROM `families` WHERE `id` = '$id' AND (`owner` = '$username' OR `users` LIKE '%$username%')";
+        $sql = "SELECT * FROM `families` WHERE `id` = '$id' AND (`owner` = '$uid' OR `users` LIKE '%$uid%')";
         if(!$result = $db->query($sql))
             fail("Error running query [$db->error]");
         if ($result->num_rows == 0)
@@ -223,17 +230,17 @@ elseif($_POST['target'] == 'active') {
         $id = @$_POST['id'];
         if (!isset($id) || !ctype_alnum($id)) fail('Invalid ID');
         $id = $db->real_escape_string($id);
-        $sql = "SELECT * FROM `families` WHERE `id` = '$id' AND (`owner` = '$username' OR `users` LIKE '%$username%')";
+        $sql = "SELECT * FROM `families` WHERE `id` = '$id' AND (`owner` = '$uid' OR `users` LIKE '%$uid%')";
         if(!$result = $db->query($sql))
             fail("Error running query [$db->error]");
         if ($result->num_rows != 1)
             fail('No matching families found');
         $family = $result->fetch_assoc();
-        $owner = ($family['owner'] == $username);
+        $owner = ($family['owner'] == $uid);
         if (!$owner) {
             $users = explode(',', $family['users']);
-            if (in_array($username, $users))
-            	unset($users[array_search($username, $users)]);
+            if (in_array($uid, $users))
+            	unset($users[array_search($uid, $users)]);
             $family['users'] = implode(',', $users);
             $sql = "UPDATE `families` SET `users` = '{$family['users']}' WHERE `id` = '{$family['id']}'";
             if(!$result = $db->query($sql))
@@ -258,7 +265,7 @@ elseif($_POST['target'] == 'active') {
             $sql = "DELETE FROM `lists` WHERE `family` = '{$family['id']}'";
             if(!$resultD = $db->query($sql))
                 fail("Error running query [$db->error]");
-            $sql = "DELETE FROM `families` WHERE `id` = '$id' AND (`owner` = '$username' OR `users` LIKE '%$username%')";
+            $sql = "DELETE FROM `families` WHERE `id` = '$id' AND (`owner` = '$uid' OR `users` LIKE '%$uid%')";
             if(!$resultE = $db->query($sql))
                 fail("Error running query [$db->error]");
             succeed('Family and lists deleted', [

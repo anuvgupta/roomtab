@@ -23,9 +23,9 @@ Block = function () {
     var __parent;
     var children = { };
     var __children = { };
-    var keys = {
-        __blockdata: []
-    };
+    var keys = { };
+    var blockdata = [];
+    var dataBindings = { };
     // if new blocktype is being declared, add callbacks to __blocks object and return
     if (marking != undefined && marking != null && typeof marking == 'function') {
         __blocks[type] = { };
@@ -290,6 +290,12 @@ Block = function () {
             } else keys[$key] = $data;
             return this;
         },
+        blockdata: function ($key) {
+            if (isType(blockdata[$key], 'undefined') || isType(blockdata[$key], 'null'))
+                blockdata[$key] = { };
+            else return blockdata[$key];
+            return this;
+        },
         on: function ($type, $callback) { // set event handler on current block
             var $block = this;
             if (isType($type, 'string')) {
@@ -433,6 +439,16 @@ Block = function () {
                 return null;
             else return __parent;
         },
+        html: function () {
+            var $html = arguments[0];
+            var $append = arguments[1];
+            if (isType($html, 'string')) {
+                if (!isType($append, 'null') && !isType($append, 'undefined') && $append === true)
+                    element.innerHTML += $html;
+                else element.innerHTML = $html;
+            } else return element.innerHTML;
+            return this;
+        },
         node: function () { // get current block's node (DOM element)
             return element;
         },
@@ -514,15 +530,24 @@ Block = function () {
                 if ($style.hasOwnProperty($property))
                     element.style[$property] = $style[$property];
             }
+            for ($key in dataBindings) {
+                if (dataBindings.hasOwnProperty($key) && $data.hasOwnProperty($key))
+                    dataBindings[$key]($data[$key]);
+            }
             for ($key in $data) {
                 if ($data.hasOwnProperty($key) && !inArr($key, $reservedAttributes))
                     element.setAttribute($key, $data[$key]);
             }
-            keys['__blockdata'].push({
+            blockdata.push({
                 data: $data,
                 css: $style
             });
-            return this;
+            return this; // chain
+        },
+        bind: function ($key, $callback) {
+            if (isType($key, 'string') && isType($callback, 'function'))
+                dataBindings[$key] = $callback;
+            return this; // chain
         },
         parse: function ($callback, $data) { // parse blockdata into object
             $data = $data.replace(/\r\n|\r|\n/g, '\n'); // clean up carriage returns
@@ -580,6 +605,8 @@ Block = function () {
             block.mark(marking);
         } else element = node(type);
     }
+
+    block.attribute('block', marking);
     return block;
 };
 // add default block style to document

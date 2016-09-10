@@ -1,0 +1,5 @@
+[Fri Aug 19 08:05:49.710384 2016] [:error] [pid 8570] [client 50.152.242.147:42823] PHP Warning:  mysqli::mysqli(): (HY000/2002): Connection refused in /var/www/slop.ml/server.php on line 17
+[Fri Aug 19 08:08:48.637478 2016] [authz_core:error] [pid 30607] [client 50.152.242.147:48908] AH01630: client denied by server configuration: /usr/share/phpMyAdmin
+[Fri Aug 19 13:24:34.399914 2016] [core:error] [pid 31610] (13)Permission denied: [client 50.152.242.147:46370] AH00132: file permissions deny server access: /var/www/sites/slop.ml/www/img/app.png
+[Fri Aug 19 14:12:44.131686 2016] [core:error] [pid 31611] (13)Permission denied: [client 50.152.242.147:41800] AH00132: file permissions deny server access: /var/www/sites/slop.ml/www/img/app.png
+[Fri Aug 19 21:43:01.951622 2016] [core:error] [pid 31572] (13)Permission denied: [client 166.216.157.56:5054] AH00132: file permissions deny server access: /var/www/sites/slop.ml/www/img/app.png
