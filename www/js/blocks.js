@@ -247,8 +247,12 @@ Block('main family', function () {
         .add(Block('text', 1)
             .css({
                 position: 'absolute',
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
                 left: '25px',
+                right: '65px',
                 top: '10px',
+                overflow: 'hidden',
                 transition: 'opacity 0.45s ease',
                 '-moz-transition': 'opacity 0.45s ease',
                 '-webkit-transition': 'opacity 0.45s ease'
@@ -324,73 +328,79 @@ Block('main family', function () {
                 }
             })
         )
-        .add(Block('block', 'list')
-            .add(Block('image')
-                .data({
-                    src: 'img/list4.png',
-                    width: '50px',
-                    height: '50px',
-                    css: {
-                        margin: '0 auto',
-                        opacity: '0.45'
-                    }
+        .add(Block('block', 'body')
+            .add(Block('block', 'list')
+                .add(Block('image')
+                    .data({
+                        src: 'img/list4.png',
+                        width: '50px',
+                        height: '50px',
+                        css: {
+                            margin: '0 auto',
+                            opacity: '0.45'
+                        }
+                    })
+                )
+                .add(Block('text')
+                    .data('Lists')
+                    .css({
+                        textTransform: 'uppercase',
+                        fontSize: '22px',
+                        color: '#A2A19E'
+                    })
+                )
+                .css({
+                    display: 'inline-table',
+                    minWidth: '80px',
+                    width: '35%',
+                    height: 'auto',
+                    cursor: 'pointer'
                 })
             )
-            .add(Block('text')
-                .data('Lists')
+            .add(Block('block', 'share')
+                .add(Block('image')
+                    .data({
+                        src: 'img/share2.png',
+                        width: '50px',
+                        height: '50px',
+                        css: {
+                            margin: '0 auto',
+                            opacity: '0.45'
+                        }
+                    })
+                )
+                .add(Block('text')
+                    .data('Share')
+                    .css({
+                        textTransform: 'uppercase',
+                        fontSize: '22px',
+                        color: '#A2A19E'
+                    })
+                )
+                .on('click', function () {
+                    block.parent(5).child('modal').on('show', {
+                        page: 'share',
+                        data: {
+                            id: block.key('id'),
+                            val: block.key('name')
+                        }
+                    });
+                })
                 .css({
-                    textTransform: 'uppercase',
-                    fontSize: '22px',
-                    color: '#A2A19E'
+                    display: 'inline-table',
+                    minWidth: '80px',
+                    width: '35%',
+                    height: 'auto',
+                    cursor: 'pointer'
                 })
             )
             .css({
                 position: 'absolute',
-                left: '40px',
+                left: '4%',
                 top: '60px',
-                minWidth: '100px',
-                width: '30%',
+                bottom: '0',
                 height: 'auto',
-                cursor: 'pointer'
-            })
-        )
-        .add(Block('block', 'share')
-            .add(Block('image')
-                .data({
-                    src: 'img/share.png',
-                    width: '50px',
-                    height: '50px',
-                    css: {
-                        margin: '0 auto',
-                        opacity: '0.45'
-                    }
-                })
-            )
-            .add(Block('text')
-                .data('Share')
-                .css({
-                    textTransform: 'uppercase',
-                    fontSize: '22px',
-                    color: '#A2A19E'
-                })
-            )
-            .on('click', function () {
-                block.parent(5).child('modal').on('show', {
-                    page: 'share',
-                    data: {
-                        id: block.key('id'),
-                        val: block.key('name')
-                    }
-                });
-            })
-            .css({
-                position: 'absolute',
-                right: '95px',
-                top: '60px',
-                minWidth: '120px',
-                width: '35%',
-                height: 'auto',
-                cursor: 'pointer'
+                width: '80%'
             })
         )
         .on('open', function () {
@@ -415,6 +425,8 @@ Block('main family', function () {
                         display: 'inline-block',
                         opacity: '0'
                     })
+                .sibling('text')
+                    .css('right', '95px')
             ;
             setTimeout(function () {
                 block.child('edit')
@@ -440,6 +452,8 @@ Block('main family', function () {
                     .css('opacity', '0')
                 .sibling('delete')
                     .css('opacity', '0')
+                .sibling('text')
+                    .css('right', '65px')
             ;
             setTimeout(function () {
                 block
