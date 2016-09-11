@@ -1,3 +1,4 @@
+var user = { };
 var pages = {
     'login': function () {
         var login = Block('block', 'login');
@@ -47,7 +48,9 @@ var pages = {
                     } else {
                         login.child('message/text').css('opacity', '0');
                         login.css('opacity', '0');
-                        setTimeout(pages['main'], 200);
+                        if ((data.user != null && data.user != undefined) && (data.user.name != null && data.user.name != undefined) && (data.user.id != null && data.user.id != undefined))
+                            user = data.user;
+                        setTimeout(pages['main'], 400);
                     }
                 }
             });
@@ -225,17 +228,20 @@ var pages = {
                                             height: (window.innerHeight * 0.75).toString() + 'px'
                                         });
                                         var list = Block('div', 'list');
-                                        for (var i in data.families)
+                                        for (var i in data.families) {
                                             list
                                                 .add(Block('main family', data.families[i]['id'])
                                                     .data({
                                                         num: parseInt(i) + 1,
                                                         id: data.families[i]['id'],
                                                         val: data.families[i]['name'],
-                                                        owner: (data.families[i]['owner'] === data.uid)
+                                                        users: data.families[i]['users'],
+                                                        owner: (data.families[i]['owner'] === data.uid),
+                                                        ownerId: data.families[i]['owner']
                                                     })
                                                 )
                                             ;
+                                        }
                                         families
                                             .__child('block/content')
                                                 .css('display', 'block')
@@ -287,6 +293,7 @@ var pages = {
                                                                                 id: data.id,
                                                                                 val: data.name,
                                                                                 owner: true,
+                                                                                ownerId: window.user.id,
                                                                                 css: {
                                                                                     opacity: '0',
                                                                                 }
@@ -390,15 +397,13 @@ var pages = {
                                     .key('id', e.detail.id)
                                     .child('message')
                                         .data('Please enter a new family name')
-                                        .parent()
-                                    .child('input')
+                                    .sibling('input')
                                         .data({ val: e.detail.val })
                                         .node().focus()
                                 ;
                                 e.stopPropagation();
                             })
                             .on('hide', function (e) {
-                                main.child('modal/block/modal/name').css('display', 'none');
                                 e.stopPropagation();
                             })
                         )
@@ -450,7 +455,6 @@ var pages = {
                             .on('show', function (e) {
                                 var modal = main.child('modal/block/modal');
                                 modal.child('delete')
-                                    .css('display', 'block')
                                     .key('name', e.detail.val)
                                     .key('id', e.detail.id)
                                     .child('message/family')
@@ -480,7 +484,122 @@ var pages = {
                                 e.stopPropagation();
                             })
                             .on('hide', function (e) {
-                                main.child('modal/block/modal/delete').css('display', 'none');
+                                e.stopPropagation();
+                            })
+                        )
+                        .add(Block('div', 'share')
+                            .add('text', 'title')
+                            .add(Block('div', 'owner')
+                                .add('text', 'left')
+                                .add('text', 'right')
+                            )
+                            .add(Block('div', 'users')
+                                .add('div', 1)
+                            )
+                            .on('show', function (e) {
+                                main.child('modal/block/modal').css('height', '350px');
+                                var share = main.child('modal/block/modal/share');
+                                if (e.detail.ownerId != window.user.id)
+                                    $.ajax({
+                                        url: 'index.php',
+                                        type: 'POST',
+                                        data: {
+                                            target: 'users',
+                                            action: 'getName',
+                                            id: e.detail.ownerId
+                                        },
+                                        dataType: 'json',
+                                        success: function (data) {
+                                            if (data.success)
+                                                share.child('owner/right').data(data.name);
+                                        }
+                                    });
+                                else share.child('owner/right').data('you');
+                                share.child('users/div').empty();
+                                var users = e.detail.users;
+                                var famID = e.detail.id;
+                                if (users != undefined && users != null && typeof users === 'string' && users.trim() != '')
+                                    users.split(',').forEach(function (user) {
+                                        if (user != window.user.id) {
+                                            $.ajax({
+                                                url: 'index.php',
+                                                type: 'POST',
+                                                data: {
+                                                    target: 'users',
+                                                    action: 'getName',
+                                                    id: user
+                                                },
+                                                dataType: 'json',
+                                                success: function (data) {
+                                                    var name = '';
+                                                    if (data.success) name = data.name;
+                                                    if (name != null && name.trim() != '') {
+                                                        share.child('users/div').add(Block('div', user)
+                                                            .key('id', data.id != null ? data.id : user)
+                                                            .add(Block('block', 1)
+                                                                .add(Block('text', 1)
+                                                                    .data(name)
+                                                                    .css({
+                                                                        fontSize: '27px',
+                                                                        overflow: 'hidden'
+                                                                    })
+                                                                )
+                                                                .css('margin-left', '10px')
+                                                                .__child('content')
+                                                                    .css('text-align', 'left')
+                                                                    .__parent()
+                                                            )
+                                                            .add(Block('block', 'icon')
+                                                                .add(Block('icon', 1).data({
+                                                                    name: 'x',
+                                                                    height: '35px',
+                                                                    width: '35px',
+                                                                }))
+                                                                .css({
+                                                                    width: '20%',
+                                                                    position: 'absolute',
+                                                                    right: '0',
+                                                                    top: '0',
+                                                                    opacity: '0.45'
+                                                                })
+                                                                .on('click', function (e) {
+                                                                    $.ajax({
+                                                                        url: 'index.php',
+                                                                        type: 'POST',
+                                                                        data: {
+                                                                            target: 'families',
+                                                                            action: 'unshare',
+                                                                            id: famID,
+                                                                            user: user
+                                                                        },
+                                                                        dataType: 'json',
+                                                                        success: function (data) {
+                                                                            if (data.success) {
+                                                                                share.child('users/div').remove(user);
+                                                                                main.child('body/families/div/div2/list/' + famID).key('users', data.family.users);
+                                                                            }
+                                                                        }
+                                                                    });
+                                                                    e.stopPropagation();
+                                                                })
+                                                            )
+                                                            .css({
+                                                                height: '40px',
+                                                                width: '100%',
+                                                                margin: '0 auto',
+                                                                borderBottom: '1px solid',
+                                                                position: 'relative'
+                                                            })
+                                                        );
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    });
+                                e.stopPropagation();
+                            })
+                            .on('hide', function (e) {
+                                main.child('modal/block/modal').css('height', '220px');
                                 e.stopPropagation();
                             })
                         )
@@ -495,8 +614,14 @@ var pages = {
                     if (submodal.child(page) != null) {
                         var children = submodal.children();
                         for (var key in children)
-                            children[key].on('hide')
-                        children[page].on('show', e.detail.data);
+                            children[key]
+                                .css('display', 'none')
+                                .on('hide')
+                            ;
+                        children[page]
+                            .on('show', e.detail.data)
+                            .css('display', 'block')
+                        ;
                     }
                 })
                 .on('show', function (e) {
@@ -545,13 +670,17 @@ $(document).ready(function () {
     $.ajax({
         url: 'index.php',
         type: 'POST',
-        data: { 'target': 'active' },
+        data: {
+            target: 'active'
+        },
         dataType: 'json',
         success: function (data) {
             if (data.success != true || data.message != 'Valid session')
                 data.page = 'login';
             else if (data.message == 'Valid session' && (data.page == null || !pages.hasOwnProperty(data.page)))
                 data.page = 'main';
+            if ((data.user != null && data.user != undefined) && (data.user.name != null && data.user.name != undefined) && (data.user.id != null && data.user.id != undefined))
+                user = data.user;
             pages[data.page]();
         }
     });

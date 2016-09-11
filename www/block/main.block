@@ -151,6 +151,46 @@ main
                         position relative
                         height 100%
                         width 100%
+                share
+                    title
+                        val Share Family
+                        css
+                            display block
+                            position absolute
+                            top 18px
+                            width 100%
+                            font-size 38px
+                            font-weight bold
+                    owner
+                        left
+                            val Owner:&nbsp;
+                        right
+                            val you
+                        css
+                            display block
+                            position absolute
+                            top 70px
+                            width 100%
+                            font-size 23px
+                    users
+                        css
+                            position absolute
+                            top 100px
+                            width 100%
+                            height 45%
+                        div
+                            css
+                                width 80%
+                                height 97%
+                                margin 0 auto
+                                overflow auto
+                                border-top 2px solid
+                                //border-bottom 2px solid
+                    css
+                        position relative
+                        display none
+                        height 100%
+                        width 100%
                 delete
                     title
                         val Delete Family

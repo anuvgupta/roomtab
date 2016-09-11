@@ -382,7 +382,9 @@ Block('main family', function () {
                         page: 'share',
                         data: {
                             id: block.key('id'),
-                            val: block.key('name')
+                            val: block.key('name'),
+                            users: block.key('users'),
+                            ownerId: block.key('ownerId')
                         }
                     });
                 })
@@ -396,11 +398,11 @@ Block('main family', function () {
             )
             .css({
                 position: 'absolute',
-                left: '4%',
+                left: '1%',
                 top: '60px',
                 bottom: '0',
                 height: 'auto',
-                width: '80%'
+                width: '78%'
             })
         )
         .on('open', function () {
@@ -483,13 +485,12 @@ Block('main family', function () {
     return block;
 }, function (block, data, css) {
     var val = data('val');
-    if (val != null) {
-        block.key('name', val)
-            .child('text').data(val)
-        ;
-    }
+    if (val != null)
+        block.key('name', val).child('text').data(val);
     var id = data('id');
     if (id != null) block.key('id', id);
+    var users = data('users');
+    if (users != null) block.key('users', users);
     var owner = data('owner');
     if (owner === true) block.key('owner', true);
     else if (owner === false)
@@ -497,4 +498,6 @@ Block('main family', function () {
             .child('delete')
                 .data({ name: 'exit' })
         ;
+    var ownerId = data('ownerId');
+    if (ownerId != null) block.key('ownerId', ownerId);
 });
