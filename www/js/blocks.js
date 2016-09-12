@@ -501,3 +501,66 @@ Block('main family', function () {
     var ownerId = data('ownerId');
     if (ownerId != null) block.key('ownerId', ownerId);
 });
+
+Block('share user', function () {
+    var block = Block('div')
+        .add(Block('block', 1)
+            .add(Block('text', 1)
+                .css({
+                    fontSize: '27px',
+                    overflow: 'hidden'
+                })
+            )
+            .css('margin-left', '10px')
+            .__child('content')
+                .css('text-align', 'left')
+                .__parent()
+        )
+        .add(Block('block', 'icon')
+            .add(Block('icon', 1).data({
+                name: 'x',
+                height: '35px',
+                width: '35px',
+            }))
+            .css({
+                width: '20%',
+                position: 'absolute',
+                right: '0',
+                top: '0',
+                opacity: '0.45'
+            })
+            .on('click', function (e) {
+                $.ajax({
+                    url: 'index.php',
+                    type: 'POST',
+                    data: {
+                        target: 'families',
+                        action: 'unshare',
+                        id: block.key('famID'),
+                        user: block.key('user')
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.success) {
+                            block.parent(2).child('users/div').remove(block.key('user'));
+                            block.key('family').key('users', data.family.users);
+                        }
+                    }
+                });
+                e.stopPropagation();
+            })
+        )
+        .css({
+            height: '40px',
+            width: '100%',
+            margin: '0 auto',
+            borderBottom: '1px solid',
+            position: 'relative'
+        })
+    ;
+    return block;
+}, function (block, data, css) {
+    var name = data('name');
+    if (name != null && name.trim() != '')
+        block.child('block/text').data(name);
+});

@@ -45,9 +45,9 @@ function id($table = null, $length = 10) {
     return $key;
 }
 
-function fail($message = null, $data = null) {
+function emit($success, $message = null, $data = null) {
     global $db, $response;
-    $response['success'] = false;
+    $response['success'] = $success;
     if (isset($message)) $response['message'] = $message;
     if (!isset($response['page']) && !isset($data['page']))
         $response['page'] = $_SESSION['page'];
@@ -58,17 +58,12 @@ function fail($message = null, $data = null) {
     die();
 }
 
+function fail($message = null, $data = null) {
+    emit(false, $message, $data);
+}
+
 function succeed($message = null, $data = null) {
-    global $db, $response;
-    $response['success'] = true;
-    if (isset($message)) $response['message'] = $message;
-    if (!isset($response['page']) && !isset($data['page']))
-        $response['page'] = $_SESSION['page'];
-    if (isset($data) && is_array($data))
-        $response = array_merge($response, $data);
-    echo json_encode($response);
-    $db->close();
-    die();
+    emit(true, $message, $data);
 }
 
 $auth = function () use ($db, $pages) {
@@ -124,6 +119,7 @@ elseif($_POST['target'] == 'active') {
         succeed('Page set to ' . $_POST['page'], ['page' => $_POST['page']]);
     }
 } elseif ($_POST['target'] == 'sign') {
+    // validate request
     if ($auth['valid'])
         fail('User logged in');
     else if (!isset($_POST['action']))
@@ -134,6 +130,8 @@ elseif($_POST['target'] == 'active') {
         fail('Invalid username', ['reason' => 'can\'t be empty']);
     elseif (!ctype_alnum($username))
         fail('Invalid username', ['reason' => 'letters and numbers only']);
+    elseif (strlen($username) > 15)
+        fail('Invalid username', ['reason' => 'too long']);
     if (!isset($password) || trim($password) == '') {
         $response['success'] = false;
         if (isset($response['message']))
@@ -152,7 +150,7 @@ elseif($_POST['target'] == 'active') {
         else $response['reason'] = 'letters and numbers only';
     }
     if (!$response['success']) succeed(null, ['page' => 'main']);
-
+    // manage request
     $username = strtolower($db->real_escape_string($username));
     $password = md5($db->real_escape_string($password));
     if ($_POST['action'] == 'in') {
@@ -221,8 +219,25 @@ elseif($_POST['target'] == 'active') {
             fail("Error running query [$sql->error]");
         if(!$result = $sql->get_result())
             fail("Error running query [$db->error]");
-        if ($result->num_rows == 0) fail('No users found');
+        if ($result->num_rows == 0) fail('User not found');
         elseif ($result->num_rows != 1) fail('Invalid ID');
+        else {
+            $user = $result->fetch_assoc();
+            succeed('Found user', ['id' => $user['id'], 'name' => $user['username']]);
+        }
+    } else if ($_POST['action'] == 'getId') {
+        $name = @$_POST['name'];
+        if (!isset($name) || !ctype_alnum($name)) fail('Invalid name');
+        $name = $db->real_escape_string($name);
+        if (!$sql = $db->prepare("SELECT * FROM `users` WHERE `username` = ?"))
+            fail("Error preparing statement [$db->error]");
+        $sql->bind_param('s', $name);
+        if(!$sql->execute())
+            fail("Error running query [$sql->error]");
+        if(!$result = $sql->get_result())
+            fail("Error running query [$db->error]");
+        if ($result->num_rows == 0) fail('User not found');
+        elseif ($result->num_rows != 1) fail('Invalid name');
         else {
             $user = $result->fetch_assoc();
             succeed('Found user', ['id' => $user['id'], 'name' => $user['username']]);
@@ -364,7 +379,56 @@ elseif($_POST['target'] == 'active') {
             ]);
         }
     } elseif ($_POST['action'] == 'share') {
-
+        $id = @$_POST['id'];
+        if (!isset($id) || !ctype_alnum($id)) fail('Invalid ID');
+        $id = $db->real_escape_string($id);
+        $user = @$_POST['user'];
+        if (!isset($user) || !ctype_alnum($user)) fail('Invalid User');
+        $user = $db->real_escape_string($user);
+        if (!$sql = $db->prepare("SELECT * FROM `users` WHERE `id` = ?"))
+            fail("Error preparing statement [$db->error]");
+        $sql->bind_param('s', $user);
+        if(!$sql->execute())
+            fail("Error running query [$sql->error]");
+        if(!$resultA = $sql->get_result())
+            fail("Error running query [$db->error]");
+        if ($resultA->num_rows == 0) fail('User not found');
+        elseif ($resultA->num_rows != 1) fail('Invalid ID');
+        if (!$sql = $db->prepare("SELECT * FROM `families` WHERE `id` = ?"))
+            fail("Error preparing statement [$db->error]");
+        $sql->bind_param('s', $id);
+        if(!$sql->execute())
+            fail("Error running query [$sql->error]");
+        if(!$resultB = $sql->get_result())
+            fail("Error running query [$db->error]");
+        if ($resultB->num_rows == 0) fail('Family not found');
+        elseif ($resultB->num_rows != 1) fail('Invalid Family ID');
+        $family = $resultB->fetch_assoc();
+        $users = explode(',', $family['users']);
+        if (in_array($user, $users))
+            fail('User already in family');
+        elseif ($user == $family['owner'])
+            fail('Cannot add owner to family');
+        else array_push($users, $user);
+        $family['users'] = implode(',', $users);
+        if (!$sql = $db->prepare("UPDATE `families` SET `users` = ? WHERE `id` = ?"))
+            fail("Error preparing statement [$db->error]");
+        $sql->bind_param('ss', $family['users'], $family['id']);
+        if(!$sql->execute())
+            fail("Error running query [$sql->error]");
+        $userdata = $resultA->fetch_assoc();
+        $resultA->free();
+        $resultB->free();
+        succeed(
+            'Added user to family',
+            [
+                'family' => $family,
+                'user' => [
+                    'id' => $userdata['id'],
+                    'name' => $userdata['username']
+                ]
+            ]
+        );
     } elseif ($_POST['action'] == 'unshare') {
         $id = @$_POST['id'];
         if (!isset($id) || !ctype_alnum($id)) fail('Invalid ID');
@@ -385,6 +449,7 @@ elseif($_POST['target'] == 'active') {
         $users = explode(',', $family['users']);
         if (in_array($user, $users))
             unset($users[array_search($user, $users)]);
+        else fail('User not in family');
         $family['users'] = implode(',', $users);
         if (!$sql = $db->prepare("UPDATE `families` SET `users` = ? WHERE `id` = ?"))
             fail("Error preparing statement [$db->error]");

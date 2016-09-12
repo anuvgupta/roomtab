@@ -157,7 +157,7 @@ main
                         css
                             display block
                             position absolute
-                            top 18px
+                            top 12px
                             width 100%
                             font-size 38px
                             font-weight bold
@@ -169,15 +169,15 @@ main
                         css
                             display block
                             position absolute
-                            top 70px
+                            top 58px
                             width 100%
                             font-size 23px
                     users
                         css
                             position absolute
-                            top 100px
+                            top 88px
                             width 100%
-                            height 45%
+                            height 144px
                         div
                             css
                                 width 80%
@@ -186,6 +186,62 @@ main
                                 overflow auto
                                 border-top 2px solid
                                 //border-bottom 2px solid
+                    add
+                        css
+                            position absolute
+                            top 233px
+                            width 100%
+                            height 60px
+                        input
+                            textbox
+                                placeholder Add by name
+                                css
+                                    height 40px
+                                    width 145px
+                                    top 66px
+                                    left 0
+                                    right 0
+                                    font-size 23px
+                                    padding 3px 17px
+                                    text-align left
+                            css
+                                width 67%
+                                position absolute
+                                top 0
+                                left 25px
+                        confirm
+                            icon
+                                name plus
+                                height 40px
+                                width 40px
+                            css
+                                width 40px
+                                opacity 0.55
+                                position absolute
+                                top 0
+                                right 38px
+                    status
+                        text
+                            val &nbsp;
+                        css
+                            position absolute
+                            bottom 55px
+                            width 100%
+                            font-size 15px
+                    done
+                        check
+                            icon
+                                name check
+                                height 48px
+                                width 48px
+                                css
+                                    display inline-block
+                                    opacity 0.5
+                        css
+                            position absolute
+                            bottom 6px
+                            height 35px
+                            width 100%
                     css
                         position relative
                         display none

@@ -496,8 +496,87 @@ var pages = {
                             .add(Block('div', 'users')
                                 .add('div', 1)
                             )
+                            .add(Block('div', 'add')
+                                .add(Block('block', 'input')
+                                    .add(Block('login input', 'textbox')
+                                        .on('keyup', function (e) {
+                                            if (e.which == 13 || e.keyCode == 13)
+                                                main.child('modal/block/modal/share/add/confirm').on('click');
+                                        })
+                                    )
+                                )
+                                .add(Block('block', 'confirm')
+                                    .add('icon', 1)
+                                    .on('click', function (e) {
+                                        var share = main.child('modal/block/modal/share');
+                                        var textbox = share.child('add/input/textbox');
+                                        var val = textbox.node().value;
+                                        if (val != null && val.trim != '')
+                                            $.ajax({
+                                                url: 'index.php',
+                                                type: 'POST',
+                                                data: {
+                                                    target: 'users',
+                                                    action: 'getId',
+                                                    name: val
+                                                },
+                                                dataType: 'json',
+                                                success: function (data) {
+                                                    var textblock = share.child('status/text');
+                                                    if (data.success && data.id != undefined && data.id != null) {
+                                                        var shareID = data.id;
+                                                        if (shareID == window.user.id)
+                                                            textblock.data('Can\'t add yourself!');
+                                                        else $.ajax({
+                                                                url: 'index.php',
+                                                                type: 'POST',
+                                                                data: {
+                                                                    target: 'families',
+                                                                    action: 'share',
+                                                                    user: shareID,
+                                                                    id: share.key('famID')
+                                                                },
+                                                                dataType: 'json',
+                                                                success: function (data) {
+                                                                    if (data.success && data.user.id != undefined && data.user.id != null) {
+                                                                        textbox.node().value = '';
+                                                                        textblock.data(data.message);
+                                                                        share.child('users/div').add(Block('share user', data.user.id)
+                                                                            .key('id', data.user.id != null ? data.user.id : shareID)
+                                                                            .key('famID', share.key('famID'))
+                                                                            .key('user', shareID)
+                                                                            .key('family', main.child('body/families/div/div2/list/' + share.key('famID')))
+                                                                            .data({ name: data.user.name })
+                                                                        );
+                                                                    } else if (data.message != undefined && data.message != null && data.message.trim() != '')
+                                                                        textblock.data(data.message);
+                                                                    else textblock.data('Unknown Error');
+                                                                }
+                                                            });
+                                                    } else if (data.message != undefined && data.message != null && data.message.trim() != '')
+                                                        textblock.data(data.message);
+                                                    else textblock.data('Unknown Error');
+                                                }
+                                            });
+                                        e.stopPropagation();
+                                    })
+                                )
+                            )
+                            .add(Block('div', 'status')
+                                .add('text', 1)
+                            )
+                            .add(Block('block', 'done')
+                                .add(Block('block', 'check')
+                                    .add(Block('icon', 1)
+                                        .on('click', function (e) {
+                                            main.child('modal').on('click');
+                                            e.stopPropagation();
+                                        })
+                                    )
+                                )
+                            )
                             .on('show', function (e) {
-                                main.child('modal/block/modal').css('height', '350px');
+                                main.child('modal/block/modal').css('height', '360px');
                                 var share = main.child('modal/block/modal/share');
                                 if (e.detail.ownerId != window.user.id)
                                     $.ajax({
@@ -510,14 +589,15 @@ var pages = {
                                         },
                                         dataType: 'json',
                                         success: function (data) {
-                                            if (data.success)
-                                                share.child('owner/right').data(data.name);
+                                            if (data.success) share.child('owner/right').data(data.name);
                                         }
                                     });
                                 else share.child('owner/right').data('you');
                                 share.child('users/div').empty();
+                                share.child('status/text').data('&nbsp;');
                                 var users = e.detail.users;
                                 var famID = e.detail.id;
+                                share.key('famID', e.detail.id);
                                 if (users != undefined && users != null && typeof users === 'string' && users.trim() != '')
                                     users.split(',').forEach(function (user) {
                                         if (user != window.user.id) {
@@ -534,62 +614,12 @@ var pages = {
                                                     var name = '';
                                                     if (data.success) name = data.name;
                                                     if (name != null && name.trim() != '') {
-                                                        share.child('users/div').add(Block('div', user)
+                                                        share.child('users/div').add(Block('share user', user)
                                                             .key('id', data.id != null ? data.id : user)
-                                                            .add(Block('block', 1)
-                                                                .add(Block('text', 1)
-                                                                    .data(name)
-                                                                    .css({
-                                                                        fontSize: '27px',
-                                                                        overflow: 'hidden'
-                                                                    })
-                                                                )
-                                                                .css('margin-left', '10px')
-                                                                .__child('content')
-                                                                    .css('text-align', 'left')
-                                                                    .__parent()
-                                                            )
-                                                            .add(Block('block', 'icon')
-                                                                .add(Block('icon', 1).data({
-                                                                    name: 'x',
-                                                                    height: '35px',
-                                                                    width: '35px',
-                                                                }))
-                                                                .css({
-                                                                    width: '20%',
-                                                                    position: 'absolute',
-                                                                    right: '0',
-                                                                    top: '0',
-                                                                    opacity: '0.45'
-                                                                })
-                                                                .on('click', function (e) {
-                                                                    $.ajax({
-                                                                        url: 'index.php',
-                                                                        type: 'POST',
-                                                                        data: {
-                                                                            target: 'families',
-                                                                            action: 'unshare',
-                                                                            id: famID,
-                                                                            user: user
-                                                                        },
-                                                                        dataType: 'json',
-                                                                        success: function (data) {
-                                                                            if (data.success) {
-                                                                                share.child('users/div').remove(user);
-                                                                                main.child('body/families/div/div2/list/' + famID).key('users', data.family.users);
-                                                                            }
-                                                                        }
-                                                                    });
-                                                                    e.stopPropagation();
-                                                                })
-                                                            )
-                                                            .css({
-                                                                height: '40px',
-                                                                width: '100%',
-                                                                margin: '0 auto',
-                                                                borderBottom: '1px solid',
-                                                                position: 'relative'
-                                                            })
+                                                            .key('famID', famID)
+                                                            .key('user', user)
+                                                            .key('family', main.child('body/families/div/div2/list/' + famID))
+                                                            .data({ name: name })
                                                         );
                                                     }
                                                 }
