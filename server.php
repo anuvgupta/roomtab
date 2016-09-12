@@ -1,13 +1,9 @@
 <?php
 
+// begin session
 session_start();
-// if (!isset($_POST['target']))
-//     die(json_encode([
-//         'success' => false,
-//         'message' => 'Invalid request (target)',
-//         'page' => 'login'
-//     ], JSON_PRETTY_PRINT));
 
+// connect to database
 require('database.php');
 $db = new mysqli(
     $database['host'],
@@ -18,12 +14,16 @@ $db = new mysqli(
 if($db->connect_errno > 0)
     die("Error connecting to database: [$db->connect_error]");
 
+// server defaults
 $pages = ['login', 'main', 'profile', 'families', 'lists'];
 $response = ['success' => true];
 
+// function for generating new unique IDs
 function id($table = null, $length = 10) {
     global $db;
+    // if table specified
     if (isset($table)) {
+        // keep creating ID's
         while (true) {
             $key = id();
             if (!$sql = $db->prepare("SELECT * FROM `$table` WHERE `id` = ?"))
@@ -34,17 +34,21 @@ function id($table = null, $length = 10) {
             $result = $sql->get_result();
             $num_rows = $result->num_rows;
             $result->free();
+            // until unique ID surfaces
             if ($num_rows == 0) break;
         }
     } else {
+        // if table not specified
         $key = '';
         $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        // create new ID
         for ($i = 0; $i < $length; $i++)
             $key .= $chars[rand(0, strlen($chars) - 1)];
     }
     return $key;
 }
 
+// function for sending data to client and closing request
 function emit($success, $message = null, $data = null) {
     global $db, $response;
     $response['success'] = $success;
@@ -58,15 +62,19 @@ function emit($success, $message = null, $data = null) {
     die();
 }
 
+// convenience function for emitting without success
 function fail($message = null, $data = null) {
     emit(false, $message, $data);
 }
 
+// convenience function for emitting with success
 function succeed($message = null, $data = null) {
     emit(true, $message, $data);
 }
 
+// authenticate current session
 $auth = function () use ($db, $pages) {
+    // authenticate session activity, username, password, and user id
     if (@$_SESSION['active'] && isset($_SESSION['username']) && isset($_SESSION['password']) && isset($_SESSION['uid'])) {
         $username = strtolower($db->real_escape_string($_SESSION['username']));
         $password = $db->real_escape_string($_SESSION['password']);
@@ -419,8 +427,7 @@ elseif($_POST['target'] == 'active') {
         $userdata = $resultA->fetch_assoc();
         $resultA->free();
         $resultB->free();
-        succeed(
-            'Added user to family',
+        succeed('Added user to family',
             [
                 'family' => $family,
                 'user' => [

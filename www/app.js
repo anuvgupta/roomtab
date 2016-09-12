@@ -539,15 +539,17 @@ var pages = {
                                                                 dataType: 'json',
                                                                 success: function (data) {
                                                                     if (data.success && data.user.id != undefined && data.user.id != null) {
+                                                                        var family = main.child('body/families/div/div2/list/' + share.key('famID'));
                                                                         textbox.node().value = '';
                                                                         textblock.data(data.message);
                                                                         share.child('users/div').add(Block('share user', data.user.id)
                                                                             .key('id', data.user.id != null ? data.user.id : shareID)
                                                                             .key('famID', share.key('famID'))
                                                                             .key('user', shareID)
-                                                                            .key('family', main.child('body/families/div/div2/list/' + share.key('famID')))
+                                                                            .key('family', family)
                                                                             .data({ name: data.user.name })
                                                                         );
+                                                                        family.key('users', data.family.users);
                                                                     } else if (data.message != undefined && data.message != null && data.message.trim() != '')
                                                                         textblock.data(data.message);
                                                                     else textblock.data('Unknown Error');
