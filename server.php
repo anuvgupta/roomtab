@@ -1,7 +1,9 @@
 <?php
 
-// begin session
+// commence/resume session
 session_start();
+$lifetime = 365 * 24 * 60 * 60; // a year in seconds
+setcookie(session_name(), session_id(), time() + $lifetime);
 
 // connect to database
 require('database.php');
