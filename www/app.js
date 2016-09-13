@@ -1,3 +1,11 @@
+/*
+ slop.ml [client code]
+ (c) 2016 Anuv Gupta [http://slop.ml]
+ License: MIT
+*/
+
+var server = 'index.php';
+// server = 'https://slop.ml/index.php';
 var user = { };
 var pages = {
     'login': function () {
@@ -25,7 +33,7 @@ var pages = {
                 return false;
             }
             $.ajax({
-                url: 'index.php',
+                url: window.server,
                 type: 'POST',
                 data: {
                     target: target,
@@ -101,7 +109,7 @@ var pages = {
         var setpage  = function (page) {
             main.key('currentPage', page);
             $.ajax({
-                url: 'index.php',
+                url: window.server,
                 type: 'POST',
                 data: {
                     target: 'page',
@@ -146,7 +154,7 @@ var pages = {
                 .add(Block('main button', 'families')
                     .on('click', function () {
                         $.ajax({
-                            url: 'index.php',
+                            url: window.server,
                             type: 'POST',
                             data: {
                                 target: 'families',
@@ -195,7 +203,7 @@ var pages = {
                                                     )
                                                     .on('click', function () {
                                                         $.ajax({
-                                                            url: 'index.php',
+                                                            url: window.server,
                                                             type: 'POST',
                                                             data: {
                                                                 target: 'families',
@@ -274,7 +282,7 @@ var pages = {
                                                         )
                                                         .on('click', function () {
                                                             $.ajax({
-                                                                url: 'index.php',
+                                                                url: window.server,
                                                                 type: 'POST',
                                                                 data: {
                                                                     target: 'families',
@@ -367,7 +375,7 @@ var pages = {
                                             fail('Name cannot be empty');
                                         else {
                                             $.ajax({
-                                                url: 'index.php',
+                                                url: window.server,
                                                 type: 'POST',
                                                 data: {
                                                     target: 'families',
@@ -428,7 +436,7 @@ var pages = {
                                         var del = main.child('modal/block/modal/delete');
                                         var id = del.key('id');
                                         $.ajax({
-                                            url: 'index.php',
+                                            url: window.server,
                                             type: 'POST',
                                             data: {
                                                 target: 'families',
@@ -513,7 +521,7 @@ var pages = {
                                         var val = textbox.node().value;
                                         if (val != null && val.trim != '')
                                             $.ajax({
-                                                url: 'index.php',
+                                                url: window.server,
                                                 type: 'POST',
                                                 data: {
                                                     target: 'users',
@@ -528,7 +536,7 @@ var pages = {
                                                         if (shareID == window.user.id)
                                                             textblock.data('Can\'t add yourself!');
                                                         else $.ajax({
-                                                                url: 'index.php',
+                                                                url: window.server,
                                                                 type: 'POST',
                                                                 data: {
                                                                     target: 'families',
@@ -582,7 +590,7 @@ var pages = {
                                 var share = main.child('modal/block/modal/share');
                                 if (e.detail.ownerId != window.user.id)
                                     $.ajax({
-                                        url: 'index.php',
+                                        url: window.server,
                                         type: 'POST',
                                         data: {
                                             target: 'users',
@@ -604,7 +612,7 @@ var pages = {
                                     users.split(',').forEach(function (user) {
                                         if (user != window.user.id) {
                                             $.ajax({
-                                                url: 'index.php',
+                                                url: window.server,
                                                 type: 'POST',
                                                 data: {
                                                     target: 'users',
@@ -700,7 +708,7 @@ var pages = {
 
 $(document).ready(function () {
     $.ajax({
-        url: 'index.php',
+        url: window.server,
         type: 'POST',
         data: {
             target: 'active'
