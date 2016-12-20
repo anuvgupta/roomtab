@@ -1,0 +1,203 @@
+    *
+
+// lists blockfile
+
+// define custom blocks
+!break
+    init
+        {
+            return Block('span').add('br');
+        }
+    load
+        {
+            data('val', function (val) {
+                for (var i = 1; i < val; i++)
+                    block.add('br');
+            });
+        }
+!text
+    init
+        {
+            return Block('span');
+        }
+    load
+        {
+            data('val', function (val) {
+                block.node().appendChild(document.createTextNode(val));
+            });
+            data('html', function (html) {
+                block.html(html);
+            });
+        }
+!image
+    init
+        {
+            return Block('div');
+        }
+    load
+        {
+            var src = data('src');
+            var height = data('height');
+            var width = data('width');
+            var alt = data('alt');
+            if (src != null) {
+                block.css('background-image', "url('" + src + "')")
+                    .css('background-repeat', 'no-repeat')
+                    .css('background-size', 'contain')
+                ;
+            }
+            if (height !== null) block.css('height', height);
+            else block.css('height', 'auto');
+            if (width !== null) block.css('width', width);
+            else block.css('width', 'auto');
+            if (alt !== null) block.attribute('title', alt);
+        }
+app
+    css
+        width 100%
+        height 100%
+        position absolute
+        background-color #FEFEFE
+        opacity 0
+        transition opacity 0.1s ease
+    :signin
+        {
+            block
+                .key('token', data.token)
+                .child('body/main').on('show')
+            ;
+            block.key('pocket').send('authenticate', data.token);
+            block.key('pocket').send('snapshot');
+        }
+    div body
+        div signin
+            block content
+                image logo
+                    src img/list.png
+                    height 180px
+                    width 180px
+                    css
+                        margin 0 auto
+                div input
+                    css
+                        position relative
+                        width 250px
+                        margin 0 auto
+                    input password
+                        placeholder password
+                        type password
+                        css
+                            outline none
+                            border none
+                            padding 10px
+                            font-size 20px
+                            color #777
+                            border-radius 5px
+                            width 180px
+                            background-color #F3F3F3
+                            text-align center
+                        :center
+                            css
+                                text-align center
+                                padding 10px
+                        :left
+                            css
+                                text-align left
+                                padding-left 20px
+                                padding-right 0
+                        :keydown, keyup, input
+                            {
+                                if (block.node().value == '')
+                                    block.on('center').sibling('arrow').css('display', 'none');
+                                else block.on('left').sibling('arrow').css('display', 'block');
+                            }
+                        :keyup
+                            {
+                                if (event.keyCode == 13)
+                                    block.sibling('arrow').on('click');
+                            }
+                    div arrow
+                        text text
+                            html &rarr;
+                        css
+                            color #777
+                            height 50px
+                            width 50px
+                            font-size 25px
+                            position absolute
+                            top 5px
+                            right 26px
+                            cursor pointer
+                            opacity 0.65
+                            display none
+                            transition opacity 0.25s ease
+                        :mouseover
+                            css
+                                opacity 1
+                        :mouseout
+                            css
+                                opacity 0.8
+                        :click
+                            {
+                                var textBlock = block.parent(1).child('message/text');
+                                var val = block.sibling('password').node().value;
+                                var fail = function () {
+                                    block.sibling('password').css('animation', 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both');
+                                    setTimeout(function () {
+                                        block.sibling('password').css('animation', '');
+                                    }, 820);
+                                };
+                                if (val == null || val.trim() == '') {
+                                    textBlock.html('Invalid Password');
+                                    return fail();
+                                }
+                                ajax('auth', 'signin', {
+                                    password: val
+                                }, function (data) {
+                                    if (!data.success) {
+                                        textBlock.html(data.message);
+                                        return fail();
+                                    } else {
+                                        textBlock.html('&nbsp;');
+                                        block.parent(4).on('signin', data);
+                                    }
+                                });
+                            }
+                div message
+                    text text
+                        html &nbsp;
+                    css
+                        margin-top 3px
+                        color #E68888
+                        font-size 16px
+            css
+                height 100%
+        div main
+            css
+        {
+            var children = block.children();
+            for (var marking in children) {
+                children[marking].on('show', function (e, b, d) {
+                    var siblings = b.siblings();
+                    for (var sibling in siblings)
+                        siblings[sibling].on('hide');
+                    b.css('display', 'block');
+                    e.stopPropagation();
+                });
+                children[marking].on('hide', function (e, b, d) {
+                    b.css('display', 'none');
+                    e.stopPropagation();
+                });
+            }
+            block.child('signin').on('show');
+        }
+        css
+            height 100%
+            margin 0 auto
+            background-color #FEFEFE
+        @query window width >= 750
+            css
+                width 70%
+        @query window width < 750
+            css
+                width 100%
