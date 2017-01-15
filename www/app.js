@@ -1,88 +1,233 @@
-$(document).ready(function () {
-    // load custom blocks and main block
-    blocks();
-    var block = Block('div', 'app');
+var app = {
+    pocket: Pocket(),
+    block: Block('div', 'app'),
+    server: {
+        domain: document.domain,
+        port: 8004,
+        script: 'lists.php'
+    },
+    signin: function (password) {
+        if (this.pocket.online()) this.pocket.send('auth', 'sign in', password, 'token');
+        else this.block.child('body/signin').on('message', {
+            text: 'disconnected'
+        });
+    },
+    signout: function () {
+        if (this.pocket.online()) {
+            this.pocket.send('auth', 'sign out', 'password', this.token());
+            this.cookie('token', '');
+            $.ajax({
+                url: 'index.php',
+                method: 'post',
+                data: {
+                    token: 'token'
+                }
+            });
+        }
+        else this.block.child('body/signin').on('message', {
+            text: 'disconnected'
+        });
+        this.block.child('body/signin').on('show');
+    },
+    newlist: function (name) {
+        this.pocket.send('newlist', name, this.token());
+    },
+    renamelist: function (listID, name) {
+        this.pocket.send('renamelist', listID, name, this.token());
+    },
+    deletelist: function (listID) {
+        this.pocket.send('deletelist', listID, this.token());
+    },
+    loaditems: function (listID) {
+        this.pocket.send('loaditems', listID, this.token());
+    },
+    newitem: function (listID, text) {
+        this.pocket.send('newitem', listID, text, this.token());
+    },
+    revalueitem: function (listID, itemID, text) {
+        this.pocket.send('revalueitem', listID, itemID, text, this.token());
+    },
+    deleteitem: function (listID, itemID) {
+        this.pocket.send('deleteitem', listID, itemID, this.token());
+    },
+    checkitem: function (listID, itemID, checked) {
+        this.pocket.send('checkitem', listID, itemID, checked, this.token());
+    },
+    token: function () {
+        return this.cookie('token') == null ? 'token' : this.cookie('token');
+    },
+    cookie: function (id, val, date) {
+        if (Block.is.unset(val))
+            document.cookie.split('; ').forEach(function (cookie) {
+                if (cookie.substring(0, id.length) == id)
+                    val = cookie.substring(id.length + 1);
+            });
+        else document.cookie = id + '=' + val + (Block.is.set(date) ? '; expires=' + date : '');
+        return (Block.is.unset(val) ? null : val);
+    }
+};
 
+$(document).ready(function () {
+    var loadingPage = Block('div', 'loading').html(document.body.innerHTML);
     // set pocketjs events
-    var snapshot = '';
-    var pocket = Pocket();
-    block.key('pocket', pocket);
-    pocket.bind('update', function (db) {
-        if (block.key('token') != null) {
-            if (db != snapshot) {
-                snapshot = db;
-                db = JSON.parse(db);
-                console.log(db);
-                block.child('body/main').html('<div><br/><br/>' + JSON.stringify(db) + '</div>');
-            }
-            if ((typeof db === 'string' && typeof snapshot === 'string') &&
-                (db.trim() == '' || db.trim() == '[]' || db.trim() == '[ ]') ||
-                (snapshot.trim() == '' || snapshot.trim() == '[]' || snapshot.trim() == '[ ]')
-            ) ; // no data
+    app.pocket.onOpen(function () {
+        app.pocket.send('auth', 'auth', 'password', app.token());
+    });
+    app.pocket.bind('authenticate', function (success, token) {
+        if (success) {
+            app.block.child('body/signin').on('message', {
+                text: '&nbsp;'
+            }).sibling('main').on('show');
+            app.cookie('token', token);
+            $.ajax({
+                url: 'index.php',
+                method: 'post',
+                data: {
+                    token: token
+                }
+            });
+            app.pocket.send('update', app.token());
+        } else {
+            app.block.child('body/signin').on('fail', {
+                text: 'incorrect password'
+            });
         }
     });
-    pocket.onOpen(function () {
-        // connected
-        var token = block.key('token');
-        if (token != null && typeof token == 'string')
-            pocket.send('authenticate', token);
+    app.pocket.bind('authorize', function (success) {
+        if (success) {
+            app.block.child('body/main').on('show');
+            app.pocket.send('update', app.token());
+        } else app.block.child('body/signin').on('show');
+        setTimeout(function () {
+            app.block.fill(document.body).css('opacity', '1');
+        }, 1000);
     });
-    pocket.onClose(function () {
-        // disconnected
+    app.pocket.bind('update', function (lists) {
+        try {
+            lists = JSON.parse(lists);
+        } catch (e) {
+            console.log('Could not update: Invalid JSON');
+            return;
+        }
+        app.block.on('update', { lists: lists });
+    });
+    app.pocket.bind('newlist', function (id, name) {
+        console.log('new list: ' + id + ' - ' + name);
+        app.block.child('body/main/body/lists').on('new', {
+            id: id,
+            name: name,
+            items: []
+        });
+    });
+    app.pocket.bind('deletelist', function (id) {
+        console.log('delete list: ' + id);
+        var listsBlock = app.block.child('body/main/body/lists');
+        listsBlock.on('delete', {
+            id: id
+        });
+        if (listsBlock.sibling('list').key('id') == id)
+            listsBlock.on('left');
+    });
+    app.pocket.bind('renamelist', function (id, newname) {
+        console.log('rename list: ' + id + ' - ' + newname);
+        var listsBlock = app.block.child('body/main/body/lists');
+        listsBlock.on('rename', {
+            id: id,
+            newname: newname
+        });
+        if (listsBlock.sibling('list').key('id') == id)
+            listsBlock.sibling('list').data({
+                name: newname
+            });
+    });
+    app.pocket.bind('loaditems', function (id, items) {
+        console.log('items loaded from list: ' + id);
+        try {
+            items = JSON.parse(items);
+        } catch (e) {
+            console.log('Could not load items: Invalid JSON');
+            return;
+        }
+        var listsBlock = app.block.child('body/main/body/lists');
+        if (listsBlock.sibling('list').key('id') == id)
+            listsBlock.sibling('list').data({
+                items: items
+            });
+    });
+    app.pocket.bind('newitem', function (listID, itemID, text) {
+        console.log('new item for list: ' + listID + ' - item ' + itemID);
+        var listBlock = app.block.child('body/main/body/list');
+        if (listBlock.key('id') == listID)
+            listBlock.data({
+                item: {
+                    id: itemID,
+                    data: {
+                        checked: false,
+                        text: text
+                    }
+                }
+            });
+    });
+    app.pocket.bind('deleteitem', function (listID, itemID) {
+        console.log('deleted item from list: ' + listID + ' - item ' + itemID);
+        var listBlock = app.block.child('body/main/body/list');
+        if (listBlock.key('id') == listID) {
+            if (Block.is.obj(listBlock.child('body/unchecked/' + itemID)))
+                listBlock.child('body/unchecked').remove(itemID);
+            else if (Block.is.obj(listBlock.child('body/checked/' + itemID)))
+                listBlock.child('body/checked').remove(itemID);
+        }
+    });
+    app.pocket.bind('revalueitem', function (listID, itemID, text) {
+        console.log('revalued item from list: ' + listID + ' - item ' + itemID + ' - ' + text);
+        var listBlock = app.block.child('body/main/body/list');
+        if (listBlock.key('id') == listID) {
+            if (Block.is.obj(listBlock.child('body/unchecked/' + itemID)))
+                listBlock.child('body/unchecked/' + itemID).data({ text: text });
+            else if (Block.is.obj(listBlock.child('body/checked/' + itemID)))
+                listBlock.child('body/checked/' + itemID).data({ text: text });
+        }
+    });
+    app.pocket.bind('checkitem', function (listID, itemID, checked) {
+        console.log((checked ? '' : 'un') + 'checked item from list: ' + listID + ' - item ' + itemID);
+        var listBlock = app.block.child('body/main/body/list');
+        if (listBlock.key('id') == listID) {
+            var text = '';
+            if (checked && Block.is.obj(listBlock.child('body/unchecked/' + itemID))) {
+                text = listBlock.child('body/unchecked/' + itemID).key('text');
+                listBlock.child('body/unchecked').remove(itemID);
+            } else if (!checked && Block.is.obj(listBlock.child('body/checked/' + itemID))) {
+                text = listBlock.child('body/checked/' + itemID).key('text');
+                listBlock.child('body/checked').remove(itemID);
+            }
+            listBlock.data({
+                item: {
+                    id: itemID,
+                    data: {
+                        checked: checked,
+                        text: text
+                    }
+                }
+            });
+        }
+    });
+    app.pocket.onClose(function () {
+        loadingPage.fill(document.body);
+        app.block
+            .child('body/signin')
+                .on('show')
+                .on('message', {
+                    text: 'disconnected'
+                })
+        ;
+        setTimeout(function () {
+            app.block.fill(document.body).css('opacity', '1');
+        }, 2000);
     });
 
     // load all blocks
-    block
-        .load(function () {
-            pocket.connect(window.servers.pocket.domain, window.servers.pocket.port, window.servers.pocket.page);
-            window.dispatchEvent(new CustomEvent('resize'));
-            ajax('auth', 'authenticate', null, function (data) {
-                if (!data.success)
-                    block.child('body/signin').on('show');
-                else block.on('signin', data);
-            });
-            setTimeout(function () {
-                document.body.appendChild(block.node());
-                setTimeout(function () {
-                    block.css('opacity', '1');
-                }, 100);
-            }, 400);
-        }, 'app', 'jQuery')
-    ;
+    app.block.load(function () {
+        Block.queries();
+        app.pocket.connect(app.server.domain, app.server.port, app.server.script);
+    }, 'app', 'jQuery');
 });
-
-function ajax(target, action, params, callback, method) {
-    if (method == null || method == undefined)
-        method = 'post';
-    if (params == null || params == undefined)
-        params = { };
-    params.target = target;
-    params.action = action;
-    $.ajax({
-        url: window.servers.rest,
-        method: method.toUpperCase(),
-        data: params,
-        dataType: 'text',
-        success: function (json, status, xhr) {
-            var data;
-            try {
-                data = JSON.parse(json);
-            } catch (SyntaxError) {
-                data = {
-                    success: false,
-                    message: 'Invalid API Output',
-                    data: json
-                };
-            }
-            if (callback != null && callback != undefined && typeof callback == 'function' && callback instanceof Function)
-                callback(data, xhr);
-        },
-        error: function (xhr, status, error) {
-            if (callback != null && callback != undefined && typeof callback == 'function' && callback instanceof Function)
-                callback({
-                    success: false,
-                    message: 'Server Error ' + xhr.status
-                }, xhr);
-        }
-    });
-}

@@ -1,4 +1,14 @@
-<?php require('../api.php'); ?>
+<?php
+
+session_start();
+$lifetime = 365 * 24 * 60 * 60; // a year in seconds
+setcookie(session_name(), session_id(), time() + $lifetime);
+
+if (isset($_POST['token']) && is_string($_POST['token']))
+    $_SESSION['token'] = $_POST['token'];
+else {
+
+?>
 <!DOCTYPE html>
 <html lang = 'en'>
     <head>
@@ -6,23 +16,52 @@
         <meta charset = 'utf-8'/>
         <meta name = 'author' content = 'Anuv Gupta'/>
         <meta name = 'copyright' content = 'Copyright (c) 2016 Anuv Gupta'/>
-        <meta name = 'viewport' content = 'width=device-width, initial-scale=0.95, maximum-scale=0.95, user-scalable=yes'/>
-        <link rel = 'icon' type = 'image/png' href = 'img/list.png'/>
-        <link rel = 'stylesheet' type = 'text/css' href = 'style.css'/>
+        <meta name = 'viewport' content = 'width=device-width, initial-scale=0.85, maximum-scale=0.85, user-scalable=yes'/>
+        <meta name = 'apple-mobile-web-app-capable' content = 'yes'/>
+        <meta name = 'apple-mobile-web-app-status-bar-style' content = 'translucent'/>
+        <meta name = 'format-detection' content = 'telephone = no'/>
+        <meta name = 'mobile-web-app-capable' content = 'yes'/>
+        <link rel = 'icon' type = 'image/png' href = 'img/list2.png'/>
+        <link rel = 'apple-touch-icon' href = 'img/app.png'/>
+        <link rel = 'apple-touch-startup-image' href = 'img/app.png'/>
         <script type = 'text/javascript' src = 'js/jquery-1.12.4.min.js'></script>
         <script type = 'text/javascript' src = 'js/pocket.js'></script>
         <script type = 'text/javascript' src = 'js/block.js'></script>
-        <script type = 'text/javascript'>
-            var servers = {
-                rest: "<?php echo basename($_SERVER['PHP_SELF'])?>",
-                pocket: {
-                    domain: document.domain,
-                    port: 7999,
-                    page: 'lists.php'
-                }
-            };
-        </script>
         <script type = 'text/javascript' src = 'app.js'></script>
+        <script type = 'text/javascript'>
+            app.cookie('token', "<?php echo $_SESSION['token'] ?>");
+        </script>
+        <style type = 'text/css'>
+            @font-face {
+                font-family: lsansuni;
+                src: url('js/lsansuni.ttf');
+            }
+            @keyframes shake {
+                10%, 90% {
+                    transform: translate3d(-1px, 0, 0);
+                }
+                20%, 80% {
+                    transform: translate3d(2px, 0, 0);
+                }
+                30%, 50%, 70% {
+                    transform: translate3d(-4px, 0, 0);
+                }
+                40%, 60% {
+                    transform: translate3d(4px, 0, 0);
+                }
+            }
+            * {
+                font-family: lsansuni, Trebuchet MS, Verdana, Helvetica, Arial, sans-serif;
+            }
+            html, body {
+                margin: 0;
+            }
+            input {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+        </style>
     </head>
     <body>
         <!-- lists -->
@@ -33,3 +72,8 @@
         </div>
     </body>
 </html>
+<?php
+
+}
+
+?>

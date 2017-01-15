@@ -22,6 +22,9 @@
         }
     load
         {
+            data('replace', function (replace) {
+                if (replace) block.html('');
+            })
             data('val', function (val) {
                 block.node().appendChild(document.createTextNode(val));
             });
@@ -59,18 +62,40 @@ app
         position absolute
         background-color #FEFEFE
         opacity 0
-        transition opacity 0.1s ease
-    :signin
+        transition opacity 0.2s ease
+    :update
         {
-            block
-                .key('token', data.token)
-                .child('body/main').on('show')
-            ;
-            block.key('pocket').send('authenticate', data.token);
-            block.key('pocket').send('snapshot');
+            if (Block.is.obj(data.lists)) {
+                var listsBlock = block.child('body/main/body/lists');
+                listsBlock.on('clear');
+                for (id in data.lists) {
+                    if (data.lists.hasOwnProperty(id)) {
+                        var list = data.lists[id];
+                        if (Block.is.obj(list) && Block.is.str(list.name) && Block.is.obj(list.items))
+                            listsBlock.on('new', {
+                                id: id,
+                                name: list.name
+                            });
+                    }
+                }
+            }
         }
     div body
         div signin
+            :message
+                {
+                    if (Block.is.str(data.text))
+                        block.child('content/message/text').html(data.text);
+                }
+            :fail
+                {
+                    block.child('content/input/password').css('animation', 'shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both');
+                    setTimeout(function () {
+                        block.child('content/input/password').css('animation', '');
+                    }, 820);
+                    if (Block.is.str(data.text))
+                        block.child('content/message/text').html(data.text);
+                }
             block content
                 image logo
                     src img/list.png
@@ -90,12 +115,13 @@ app
                             outline none
                             border none
                             padding 10px
-                            font-size 20px
-                            color #777
+                            font 20px Verdana, Helvetica, Arial, sans-serif
+                            color #888
                             border-radius 5px
                             width 180px
                             background-color #F3F3F3
                             text-align center
+                            border 1px solid #edf0f2
                         :center
                             css
                                 text-align center
@@ -120,7 +146,7 @@ app
                         text text
                             html &rarr;
                         css
-                            color #777
+                            color #555
                             height 50px
                             width 50px
                             font-size 25px
@@ -139,29 +165,12 @@ app
                                 opacity 0.8
                         :click
                             {
-                                var textBlock = block.parent(1).child('message/text');
                                 var val = block.sibling('password').node().value;
-                                var fail = function () {
-                                    block.sibling('password').css('animation', 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both');
-                                    setTimeout(function () {
-                                        block.sibling('password').css('animation', '');
-                                    }, 820);
-                                };
                                 if (val == null || val.trim() == '') {
-                                    textBlock.html('Invalid Password');
-                                    return fail();
+                                    block.parent(1).on('fail', { text: 'invalid password' });
+                                    return;
                                 }
-                                ajax('auth', 'signin', {
-                                    password: val
-                                }, function (data) {
-                                    if (!data.success) {
-                                        textBlock.html(data.message);
-                                        return fail();
-                                    } else {
-                                        textBlock.html('&nbsp;');
-                                        block.parent(4).on('signin', data);
-                                    }
-                                });
+                                app.signin(val);
                             }
                 div message
                     text text
@@ -173,7 +182,805 @@ app
             css
                 height 100%
         div main
-            css
+            div head
+                css
+                    position fixed
+                    top 0
+                    left 0
+                    right 0
+                    width 100%
+                    height 90px
+                    z-index 2
+                    background-color #f3f3f4
+                    border-bottom 1px solid #e7eaec
+                block logo
+                    image image
+                        height 80px
+                        width 80px
+                        src img/list2.png
+                    css
+                        width 90px
+                        position absolute
+                        left 15px
+                block title
+                    text text
+                        css
+                            text-transform lowercase
+                            font-size 30px
+                            color #65686a
+                        @query window width >= 305
+                            html slop.ml
+                        @query window width < 305
+                            html slop
+                        @query window width < 265
+                            html &nbsp;
+                    css
+                        height 100%
+                        width auto
+                        position absolute
+                        left 105px
+                block logout
+                    div button
+                        block content
+                            text text
+                                css
+                                    text-transform uppercase
+                                    font-size 18px
+                                    color #666
+                                @query window width >= 355
+                                    html sign out
+                                    css
+                                        display inline
+                                @query window width < 355
+                                    html &nbsp;
+                                    css
+                                        display none
+                            image exit
+                                src img/exit.png
+                                height 42px
+                                width 42px
+                                css
+                                    opacity 0.5
+                                    margin 0 auto
+                                @query window width >= 355
+                                    css
+                                        display none
+                                @query window width < 355
+                                    css
+                                        display block
+                                        height 42px
+                                        width 42px
+                        css
+                            border-radius 6px
+                            border 1px solid #dfdfdf
+                            cursor pointer
+                            transition background-color 0.15s
+                            margin 0 auto
+                        @query window width >= 355
+                            css
+                                width 110px
+                                height 50px
+                        @query window width < 355
+                            css
+                                width 56px
+                                height 55px
+                        :mouseout
+                            css
+                                background-color #e8e8e8
+                        :mouseover
+                            css
+                                background-color #ececec
+                        {
+                            block.on('mouseout');
+                        }
+                        :click
+                            {
+                                app.signout();
+                            }
+                    css
+                        position absolute
+                        right 10px
+                    @query window width >= 355
+                        css
+                            width 120px
+                    @query window width < 355
+                        css
+                            width 70px
+            div body
+                css
+                    width 200%
+                !list
+                    init
+                        {
+                            var block = Block('div');
+                            return block
+                                .css({
+                                    margin: '10px auto',
+                                    height: '56px',
+                                    width: '82%',
+                                    backgroundColor: '#f8f8f8',
+                                    borderRadius: '5px',
+                                    border: '1px solid #f6f6f6',
+                                    position: 'relative',
+                                    cursor: 'pointer'
+                                })
+                                .add(Block('block', 'name')
+                                    .add(Block('text', 1)
+                                        .css({
+                                            fontSize: '22px',
+                                            color: '#777'
+                                        })
+                                    )
+                                    .css({
+                                        position: 'absolute',
+                                        left: '20px',
+                                        top: '0',
+                                        bottom: '0',
+                                        height: '100%',
+                                        width: 'auto'
+                                    })
+                                )
+                                .add(Block('block', 'next')
+                                    .add(Block('image', 'next')
+                                        .data({
+                                            src: 'img/arrow.png',
+                                            height: '38px',
+                                            width: '38px',
+                                            css: {
+                                                margin: '0 auto',
+                                                cursor: 'pointer',
+                                                transition: 'opacity 0.15s ease'
+                                            }
+                                        })
+                                        .on('mouseover', function (e, b) {
+                                            b.css('opacity', '0.65');
+                                        })
+                                        .on('mouseout', function (e, b) {
+                                            b.css('opacity', '0.45');
+                                        })
+                                        .on('mouseout')
+                                    )
+                                    .css({
+                                        position: 'absolute',
+                                        right: '8px',
+                                        top: '0',
+                                        bottom: '0',
+                                        height: '100%',
+                                        width: '45px'
+                                    })
+                                )
+                                .on('click', function (e, b) {
+                                    app.block.child('body/main/body/lists')
+                                        .on('right')
+                                    .sibling('list')
+                                        .data({
+                                            id: block.key('id'),
+                                            name: block.key('name')
+                                        })
+                                    ;
+                                    app.loaditems(block.key('id'));
+                                }, 'next')
+                            ;
+                        }
+                    load
+                        {
+                            data('id', function (id) {
+                                block.key('id', id);
+                            });
+                            data('name', function (name) {
+                                block.key('name', name);
+                                block.child('name/text').data({
+                                    val: name,
+                                    replace: true
+                                });
+                            });
+                        }
+                div lists
+                    css
+                        height 100%
+                        width 50%
+                        margin-top 110px
+                        margin-bottom 20px
+                        transition margin 0.4s cubic-bezier(0.22, 0, 0.68, 1)
+                        margin-left 0
+                        float left
+                    {
+                        block.key('lists', [])
+                            .add(Block('list', 'new')
+                                .child('next')
+                                    .css('display', 'none')
+                                .sibling('name')
+                                    .css({
+                                        left: '0',
+                                        right: '0',
+                                        width: '100%'
+                                    })
+                                    .child('text')
+                                        .css('display', 'none')
+                                        .parent()
+                                    .add(Block('image', 'new')
+                                        .data({
+                                            src: 'img/plus.png',
+                                            height: '47.5px',
+                                            width: '47.5px',
+                                            css: {
+                                                margin: '0 auto',
+                                                transition: 'opacity 0.15s ease'
+                                            }
+                                        })
+                                        .on('mouseover', function (e, b) {
+                                            b.css('opacity', '0.75');
+                                        })
+                                        .on('mouseout', function (e, b) {
+                                            b.css('opacity', '0.6');
+                                        })
+                                        .on('mouseout')
+                                    )
+                                    .parent()
+                                .data({
+                                    id: 'new',
+                                    name: ' '
+                                })
+                                .off('click', 'next')
+                                .on('click', function (e, b) {
+                                    app.block.child('modal').on('page', {
+                                        page: 'input',
+                                        data: {
+                                            title: 'New List',
+                                            details: 'name your new list',
+                                            defaultval: '',
+                                            placeholder: 'name',
+                                            confirm: function (name) {
+                                                console.log('newlist');
+                                                app.newlist(name);
+                                                return true;
+                                            }
+                                        }
+                                    }).on('show');
+                                })
+                            )
+                        ;
+                    }
+                    :clear
+                        {
+                            var newListBlock = block.child('new');
+                            block.empty().add(newListBlock);
+                        }
+                    :new
+                        {
+                            if (Block.is.str(data.id) && Block.is.str(data.name))
+                                block.add(Block('list', data.id).data(data), 'new');
+                        }
+                    :delete
+                        {
+                            if (Block.is.str(data.id) && block.child(data.id) != null && data.id != 'new')
+                                block.remove(data.id);
+                        }
+                    :rename
+                        {
+                            if (Block.is.str(data.id) && block.child(data.id) != null && Block.is.str(data.newname))
+                                block.child(data.id).data({
+                                    name: data.newname
+                                });
+                        }
+                    :left
+                        {
+                            app.block.child('body').css('overflow-y', 'scroll');
+                            block.css('margin-left', '0');
+                        }
+                    :right
+                        {
+                            app.block.child('body').css('overflow-y', 'hidden');
+                            block.css('margin-left', '-50%');
+                        }
+                div list
+                    css
+                        height 100%
+                        width 50%
+                        margin-top 90px
+                        float left
+                        position relative
+                    div top
+                        css
+                            width 100%
+                            height 70px
+                            background-color #f9f9f9
+                            border-bottom 1px solid #f5f5f5
+                            position absolute
+                            top 0
+                            right 0
+                            left 0
+                        block name
+                            css
+                                position absolute
+                                top 0
+                                left 0
+                                right 0
+                                width 100%
+                                height 100%
+                            text text
+                                val list name
+                                css
+                                    font-size 26px
+                                    color #777
+                        div back
+                            css
+                                position absolute
+                                top 14px
+                                left 15px
+                                transition opacity 0.2s ease
+                            :mouseover
+                                css
+                                    opacity 0.65
+                            :mouseout
+                                css
+                                    opacity 0.45
+                            {
+                                block.on('mouseout');
+                            }
+                            image left
+                                src img/arrow.png
+                                height 45px
+                                width 45px
+                                css
+                                    transform rotate(180deg)
+                                    cursor pointer
+                            :click
+                                {
+                                    block.parent(1).sibling('lists').on('left');
+                                }
+                        div dots
+                            css
+                                position absolute
+                                top 14px
+                                right 15px
+                                transition opacity 0.2s ease
+                            :mouseover
+                                css
+                                    opacity 0.65
+                            :mouseout
+                                css
+                                    opacity 0.45
+                            {
+                                block.on('mouseout');
+                            }
+                            image left
+                                src img/vertical.png
+                                height 45px
+                                width 45px
+                                css
+                                    transform rotate(180deg)
+                                    cursor pointer
+                            :click
+                                {
+                                    block.parent().sibling('menu').on('show');
+                                }
+                    div menu
+                        css
+                            position absolute
+                            height 75px
+                            width 100px
+                            top 30px
+                            right 30px
+                            background-color #fefefe
+                            border 1px solid #ebebeb
+                            border-radius 3px
+                            font-size 18px
+                            color #797979
+                            cursor pointer
+                            transition opacity 0.2s ease
+                            z-index 5
+                            opacity 0
+                            display none
+                        block rename
+                            css
+                                height 50%
+                                border-bottom inherit
+                            text text
+                                val rename
+                            :mouseover
+                                css
+                                    background-color #f3f3f3
+                            :mouseout
+                                css
+                                    background-color #fefefe
+                            {
+                                block.on('mouseout');
+                            }
+                            :click
+                                {
+                                    app.block.child('modal').on('page', {
+                                        page: 'input',
+                                        data: {
+                                            title: 'Rename List',
+                                            details: 'choose a new name',
+                                            defaultval: block.parent(1).key('name'),
+                                            placeholder: 'new name',
+                                            confirm: function (name) {
+                                                console.log('renamelist');
+                                                app.renamelist(block.parent(1).key('id'), name);
+                                                block.parent().sibling('menuBack').on('click');
+                                                return true;
+                                            }
+                                        }
+                                    }).on('show');
+                                }
+                        block delete
+                            css
+                                height 50%
+                            text text
+                                val delete
+                            :mouseover
+                                css
+                                    background-color #f3f3f3
+                            :mouseout
+                                css
+                                    background-color #fefefe
+                            {
+                                block.on('mouseout');
+                            }
+                            :click
+                                {
+                                    app.block.child('modal').on('page', {
+                                        page: 'confirm',
+                                        data: {
+                                            title: 'Delete List',
+                                            details: 'delete list "' + block.parent(1).key('name') + '"',
+                                            confirm: function () {
+                                                console.log('deletelist');
+                                                app.deletelist(block.parent(1).key('id'));
+                                                block.parent().sibling('menuBack').on('click');
+                                                return true;
+                                            }
+                                        }
+                                    }).on('show');
+                                }
+                        :mouseover
+                            {
+                                block.key('hover', true);
+                            }
+                        :mouseout
+                            {
+                                block.key('hover', false);
+                            }
+                        {
+                            block.on('mouseout');
+                        }
+                        :hide
+                            {
+                                // var hide;
+                                // hide = function () {
+                                //     if (block.key('hover'))
+                                //         setTimeout(hide, 1000);
+                                //     else {
+                                        block.css('opacity', '0');
+                                        setTimeout(function () {
+                                            block.css('display', 'none');
+                                        }, 500);
+                                //     }
+                                // };
+                                // hide();
+                                event.stopPropagation();
+                            }
+                        :show
+                            {
+                                block.css('display', 'table')
+                                    .sibling('menuBack').css('display', 'block');
+                                setTimeout(function () {
+                                    block.css('opacity', '1');
+                                }, 20);
+                            }
+                    div menuBack
+                        css
+                            height 100%
+                            width 100%
+                            z-index 3
+                            position fixed
+                            display none
+                            top 0
+                            left 0
+                            right 0
+                            bottom 0
+                        :click
+                            {
+                                block.sibling('menu').on('hide');
+                                block.css('display', 'none');
+                                event.stopPropagation();
+                            }
+                    div body
+                        css
+                            position absolute
+                            top 70px
+                            left 0
+                            right 0
+                            bottom 40px
+                            width 100%
+                            overflow-y scroll
+                            -webkit-overflow-scrolling touch
+                        {
+                            block.css('height', (window.innerHeight - 70 - 90 - 60) + 'px');
+                        }
+                        !item
+                            init
+                                {
+                                    return Block('div')
+                                        .css({
+                                            width: '100%',
+                                            height: '60px',
+                                            position: 'relative',
+                                            borderBottom: '1px solid #ccc'
+                                        })
+                                        .add(Block('block', 'text')
+                                            .css({
+                                                position: 'absolute',
+                                                left: '60px',
+                                                right: '40px',
+                                                top: '0',
+                                                height: '100%'
+                                            })
+                                            .css('width', (window.innerWidth - 100) + 'px')
+                                            .query('window width != 0', "block.css('width', (window.innerWidth - 100) + 'px');")
+                                            .add(Block('text', 1)
+                                                .data('item')
+                                                .css({
+                                                    color: '#5b5b5b',
+                                                    fontSize: '18px'
+                                                })
+                                            )
+                                            .__child('content')
+                                                .css('text-align', 'left')
+                                                .__parent()
+                                        )
+                                        .add(Block('block', 'checkbox')
+                                            .css({
+                                                position: 'absolute',
+                                                left: '0',
+                                                top: '0',
+                                                bottom: '0',
+                                                height: '100%',
+                                                width: '60px',
+                                                cursor: 'pointer'
+                                            })
+                                            .add(Block('image', 1)
+                                                .css({
+                                                    margin: '0 auto',
+                                                    opacity: '0.8'
+                                                })
+                                            )
+                                            .on('click', function (e, b) {
+                                                app.checkitem(app.block.child('body/main/body/list').key('id'), b.parent().mark(), (b.parent().key('checked') === true ? 'no' : 'yes'));
+                                            })
+                                        )
+                                        .add(Block('block', 'rename')
+                                            .css({
+                                                position: 'absolute',
+                                                top: '0',
+                                                bottom: '0',
+                                                right: '55px',
+                                                width: '50px',
+                                                transition: 'opacity 0.3s ease',
+                                                cursor: 'pointer'
+                                            })
+                                            .add(Block('image', 1)
+                                                .data({
+                                                    src: 'img/pencil.png',
+                                                    height: '35px',
+                                                    width: '35px'
+                                                })
+                                            )
+                                            .on('mouseover', function (e, b) {
+                                                b.css('opacity', '0.75');
+                                            })
+                                            .on('mouseout', function (e, b) {
+                                                b.css('opacity', '0.55');
+                                            })
+                                            .on('mouseout')
+                                            .on('click', function (e, block) {
+                                                app.block.child('modal').on('page', {
+                                                    page: 'input',
+                                                    data: {
+                                                        title: 'Revalue Item',
+                                                        details: 'choose a new value',
+                                                        defaultval: '',
+                                                        placeholder: 'new value',
+                                                        confirm: function (value) {
+                                                            console.log('revalueitem');
+                                                            app.revalueitem(app.block.child('body/main/body/list').key('id'), block.parent().mark(), value);
+                                                            return true;
+                                                        }
+                                                    }
+                                                }).on('show');
+                                            })
+                                        )
+                                        .add(Block('block', 'delete')
+                                            .css({
+                                                position: 'absolute',
+                                                top: '0',
+                                                bottom: '0',
+                                                right: '5px',
+                                                width: '50px',
+                                                transition: 'opacity 0.3s ease',
+                                                cursor: 'pointer'
+                                            })
+                                            .add(Block('image', 1)
+                                                .data({
+                                                    src: 'img/trash.png',
+                                                    height: '35px',
+                                                    width: '35px'
+                                                })
+                                            )
+                                            .on('mouseover', function (e, b) {
+                                                b.css('opacity', '0.75');
+                                            })
+                                            .on('mouseout', function (e, b) {
+                                                b.css('opacity', '0.55');
+                                            })
+                                            .on('mouseout')
+                                            .on('click', function (e, block) {
+                                                app.block.child('modal').on('page', {
+                                                    page: 'confirm',
+                                                    data: {
+                                                        title: 'Delete Item',
+                                                        details: 'delete item "' + block.parent().key('text') + '"',
+                                                        confirm: function () {
+                                                            console.log('deleteitem');
+                                                            app.deleteitem(app.block.child('body/main/body/list').key('id'), block.parent().mark());
+                                                            return true;
+                                                        }
+                                                    }
+                                                }).on('show');
+                                            })
+                                        )
+                                    ;
+                                }
+                            load
+                                {
+                                    data('checked', function (checked) {
+                                        block
+                                            .key('checked', checked)
+                                            .child('text/text')
+                                                .css('text-decoration', (checked ? 'line-through' : ''))
+                                                .parent(1)
+                                            .child('checkbox/image')
+                                                .data({
+                                                        src: 'img/' + (checked ? '' : 'un') + 'checked.png',
+                                                        height: '21px',
+                                                        width: '21px'
+                                                });
+                                    });
+                                    data('text', function (text) {
+                                        block.key('text', text)
+                                            .child('text/text').data({
+                                                val: text,
+                                                replace: true
+                                            });
+                                    });
+                                }
+                        div unchecked-title
+                            text text
+                                val pending items
+                                css
+                                    color #fff
+                                    margin-left 30px
+                                    margin-top -1px
+                                    display block
+                            css
+                                width 100%
+                                height 23px
+                                background-color #999
+                        div unchecked
+                            css
+                                width 100%
+                        // div hr
+                        //     css
+                        //         width 100%
+                        //         height 1px
+                        //         background-color #a2a2a2
+                        div checked-title
+                            text text
+                                val checked items
+                                css
+                                    color #fff
+                                    margin-left 30px
+                                    margin-top -1px
+                                    display block
+                            css
+                                width 100%
+                                height 23px
+                                background-color #999
+                        div checked
+                            css
+                                width 100%
+                    div new
+                        css
+                            position absolute
+                            left 0
+                            right 0
+                            width 100%
+                            height 70px
+                            z-index 10
+                            cursor pointer
+                            background-color rgba(30, 30, 30, 0.03)
+                            border-top 1px solid rgba(30, 30, 30, 0.05)
+                        @query window width != 0
+                            {
+                                block.css('top', (window.innerHeight - 70 - 90) + 'px');
+                            }
+                        block text
+                            text text
+                                val new item
+                                css
+                                    text-transform uppercase
+                                    color #666
+                                    font-size 21px
+                        :click
+                            {
+                                app.block.child('modal').on('page', {
+                                    page: 'input',
+                                    data: {
+                                        title: 'New Item',
+                                        details: 'describe the item',
+                                        defaultval: '',
+                                        placeholder: 'item text',
+                                        confirm: function (text) {
+                                            console.log('newitem');
+                                            app.newitem(block.parent().key('id'), text);
+                                            return true;
+                                        }
+                                    }
+                                }).on('show');
+                            }
+                    #id
+                        {
+                            if (Block.is.str(id))
+                                block.key('id', id);
+                        }
+                    #name
+                        {
+                            if (Block.is.str(name))
+                                block.key('name', name)
+                                    .child('top/name/text').data({
+                                        val: name,
+                                        replace: true
+                                    })
+                                ;
+                        }
+                    #items
+                        {
+                            if (Block.is.obj(items)) {
+                                block.child('body/unchecked').empty().sibling('checked').empty();
+                                for (id in items) {
+                                    if (items.hasOwnProperty(id))
+                                        block.data({
+                                            item: {
+                                                id: id,
+                                                data: items[id]
+                                            }
+                                        });
+                                }
+                            }
+                        }
+                    #item
+                        {
+                            if (Block.is.obj(item))
+                                block.child('body/' + (item.data.checked === true ? '' : 'un') + 'checked')
+                                    .add(Block('item', item.id)
+                                        .data(item.data)
+                                    )
+                                ;
+                        }
+        css
+            top 0
+            left 0
+            right 0
+            height 100%
+            margin 0 auto
+            background-color #FEFEFE
+            width 100%
+            position fixed
+            overflow-x hidden
+            overflow-y scroll
+            -webkit-overflow-scrolling touch
         {
             var children = block.children();
             for (var marking in children) {
@@ -191,13 +998,304 @@ app
             }
             block.child('signin').on('show');
         }
+    block modal
         css
-            height 100%
-            margin 0 auto
-            background-color #FEFEFE
-        @query window width >= 750
+            position fixed
+            top 0
+            right 0
+            left 0
+            bottom 0
+            display none
+            opacity 0
+            background-color rgba(10, 10, 10, 0.66)
+            transition opacity 0.2s ease
+        :hide
+            {
+                block.css('opacity', '0');
+                setTimeout(function () {
+                    block.css('display', 'none');
+                }, 200);
+            }
+        :show
+            {
+                block.css('display', 'table');
+                setTimeout(function () {
+                    block.css('opacity', '1');
+                }, 20);
+            }
+        :click
+            {
+                block.on('hide');
+            }
+        div div
             css
-                width 70%
-        @query window width < 750
-            css
-                width 100%
+                background-color #fefefe
+                border-radius 4px
+                margin 0 auto
+                position relative
+            :click
+                {
+                    event.stopPropagation();
+                }
+            div blank
+                css
+                    top 0
+                    right 0
+                    left 0
+                    bottom 0
+                    height 100%
+                    width 100%
+                    position absolute
+            div input
+                css
+                    top 0
+                    right 0
+                    left 0
+                    bottom 0
+                    height 100%
+                    width 100%
+                    position absolute
+                text title
+                    val input
+                    css
+                        font-size 32px
+                        color #666
+                        display block
+                        margin-top 8px
+                text details
+                    val some details here
+                    css
+                        font-size 19px
+                        color #777
+                        display block
+                        margin-top 6px
+                input input
+                    type text
+                    placeholder default
+                    css
+                        height 50px
+                        width 180px
+                        font-size 24px
+                        padding 5px 15px 5px 15px
+                        border-radius 4px
+                        border 1px solid #eee
+                        background-color #f7f7f7
+                        outline none
+                        color #777
+                    :keyup
+                        {
+                            if (event.keyCode == 13)
+                                block.sibling('bar').child('confirm').on('click');
+                        }
+                div bar
+                    css
+                        margin-top 12px
+                    div cancel
+                        css
+                            display inline-block
+                            transition opacity 0.15s ease
+                        image img
+                            src img/x.png
+                            height 65px
+                            width 65px
+                            css
+                                margin-right 10px
+                                cursor pointer
+                                height 65px
+                                width 65px
+                        :mouseout
+                            css
+                                opacity 0.55
+                        :mouseover
+                            css
+                                opacity 0.7
+                        {
+                            block.on('mouseout');
+                        }
+                        :click
+                            {
+                                app.block.child('modal').on('click');
+                            }
+                    div confirm
+                        css
+                            display inline-block
+                            transition opacity 0.15s ease
+                        image img
+                            src img/check.png
+                            height 65px
+                            width 65px
+                            css
+                                margin-left 10px
+                                cursor pointer
+                                height 65px
+                                width 65x
+                        :mouseout
+                            css
+                                opacity 0.55
+                        :mouseover
+                            css
+                                opacity 0.7
+                        {
+                            block.on('mouseout');
+                        }
+                #title
+                    {
+                        block.child('title').data({
+                            replace: true,
+                            val: title
+                        });
+                    }
+                #details
+                    {
+                        block.child('details').data({
+                            replace: true,
+                            val: details
+                        });
+                    }
+                #placeholder
+                    {
+                        block.child('input').attribute('placeholder', placeholder);
+                    }
+                #defaultval
+                    {
+                        block.child('input').node().value = defaultval;
+                    }
+                #confirm
+                    {
+                        block.child('bar/confirm').on('click', function () {
+                            var val = block.child('input').node().value;
+                            if (val != null && val.trim() != '' && confirm(val)) {
+                                app.block.child('modal').on('click');
+                                block.child('bar/confirm').off('click', 'confirm');
+                            }
+                        }, 'confirm');
+                    }
+                :size
+                    {
+                        block.parent().css({
+                            height: '245px',
+                            width: '270px'
+                        });
+                    }
+            div confirm
+                css
+                    top 0
+                    right 0
+                    left 0
+                    bottom 0
+                    height 100%
+                    width 100%
+                    position absolute
+                text title
+                    val input
+                    css
+                        font-size 32px
+                        color #666
+                        display block
+                        margin-top 8px
+                text details
+                    val some details here
+                    css
+                        font-size 19px
+                        color #777
+                        display block
+                        margin-top 6px
+                div bar
+                    css
+                        margin-top 12px
+                    div cancel
+                        css
+                            display inline-block
+                            transition opacity 0.15s ease
+                        image img
+                            src img/x.png
+                            height 65px
+                            width 65px
+                            css
+                                margin-right 10px
+                                cursor pointer
+                                height 65px
+                                width 65px
+                        :mouseout
+                            css
+                                opacity 0.55
+                        :mouseover
+                            css
+                                opacity 0.7
+                        {
+                            block.on('mouseout');
+                        }
+                        :click
+                            {
+                                app.block.child('modal').on('click');
+                            }
+                    div confirm
+                        css
+                            display inline-block
+                            transition opacity 0.15s ease
+                        image img
+                            src img/check.png
+                            height 65px
+                            width 65px
+                            css
+                                margin-left 10px
+                                cursor pointer
+                                height 65px
+                                width 65x
+                        :mouseout
+                            css
+                                opacity 0.55
+                        :mouseover
+                            css
+                                opacity 0.7
+                        {
+                            block.on('mouseout');
+                        }
+                #title
+                    {
+                        block.child('title').data({
+                            replace: true,
+                            val: title
+                        });
+                    }
+                #details
+                    {
+                        block.child('details').data({
+                            replace: true,
+                            val: details
+                        });
+                    }
+                #confirm
+                    {
+                        block.child('bar/confirm').on('click', function () {
+                            if (confirm()) {
+                                app.block.child('modal').on('click');
+                                block.child('bar/confirm').off('click', 'confirm');
+                            }
+                        }, 'confirm');
+                    }
+                :size
+                    {
+                        block.parent().css({
+                            height: '185px',
+                            width: '270px'
+                        });
+                    }
+        :page
+            {
+                if (Block.is.str(data.page) && block.child('div/' + data.page) != null && Block.is.obj(data.data)) {
+                    var children = block.child('div').children();
+                    for (mark in children) {
+                        if (children.hasOwnProperty(mark)) {
+                            children[mark].css('display', 'none');
+                        }
+                    }
+                    children[data.page].css('display', 'block').data(data.data).on('size');
+                }
+            }
+        {
+            block.on('page', {
+                page: 'blank',
+                data: { }
+            });
+        }

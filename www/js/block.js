@@ -115,7 +115,7 @@ Block = function () {
             return this; // chain
         },
         remove: function () {
-            $marking = arguments[0];
+            var $marking = arguments[0];
             if (Is.null($marking) && Is.undef($marking) && Is.null(parent) && Is.undef(parent))
                 parent.remove(marking);
             else if (Is.str($marking) && !Is.null(children[$marking])) {
@@ -127,7 +127,7 @@ Block = function () {
             return this;
         },
         __remove: function () {
-            $marking = arguments[0];
+            var $marking = arguments[0];
             if (Is.null($marking) && Is.undef($marking) && Is.null(__parent) && Is.undef(__parent))
                 __parent.__remove(marking);
             else if (Is.str($marking) && !Is.null(__children[$marking])) {
