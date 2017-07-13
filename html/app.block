@@ -1114,6 +1114,7 @@ app
                         }
                         :click
                             {
+                                app.block.child('modal').key('confirm', null);
                                 app.block.child('modal').on('click');
                             }
                     div confirm
@@ -1138,6 +1139,15 @@ app
                         {
                             block.on('mouseout');
                         }
+                        :click
+                            {
+                                var confirm = app.block.child('modal').key('confirm');
+                                app.block.child('modal').key('confirm', null);
+                                var val = block.parent(1).child('input').node().value;
+                                if (val != null && val.trim() != '' && confirm(val)) {
+                                    app.block.child('modal').on('click');
+                                }
+                            }
                 #title
                     {
                         block.child('title').data({
@@ -1162,13 +1172,8 @@ app
                     }
                 #confirm
                     {
-                        block.child('bar/confirm').on('click', function () {
-                            var val = block.child('input').node().value;
-                            if (val != null && val.trim() != '' && confirm(val)) {
-                                app.block.child('modal').on('click');
-                                block.child('bar/confirm').off('click', 'confirm');
-                            }
-                        }, 'confirm');
+                        app.block.child('modal').key('confirm', null);
+                        app.block.child('modal').key('confirm', confirm);
                     }
                 :size
                     {
@@ -1227,6 +1232,7 @@ app
                         }
                         :click
                             {
+                                app.block.child('modal').key('confirm', null);
                                 app.block.child('modal').on('click');
                             }
                     div confirm
@@ -1251,6 +1257,14 @@ app
                         {
                             block.on('mouseout');
                         }
+                        :click
+                            {
+                                var confirm = app.block.child('modal').key('confirm');
+                                app.block.child('modal').key('confirm', null);
+                                if (confirm()) {
+                                    app.block.child('modal').on('click');
+                                }
+                            }
                 #title
                     {
                         block.child('title').data({
@@ -1267,12 +1281,8 @@ app
                     }
                 #confirm
                     {
-                        block.child('bar/confirm').on('click', function () {
-                            if (confirm()) {
-                                app.block.child('modal').on('click');
-                                block.child('bar/confirm').off('click', 'confirm');
-                            }
-                        }, 'confirm');
+                        app.block.child('modal').key('confirm', null);
+                        app.block.child('modal').key('confirm', confirm);
                     }
                 :size
                     {

@@ -1,6 +1,19 @@
 {
-    "7Q2Qq": {
-        "name": "yo",
-        "items": []
+    "wALnR": {
+        "name": "List1",
+        "items": {
+            "FUn1L": {
+                "text": "Eggs",
+                "checked": true
+            },
+            "XIwcq": {
+                "text": "Milk1",
+                "checked": false
+            },
+            "qYIgC": {
+                "text": "Bread",
+                "checked": false
+            }
+        }
     }
 }
