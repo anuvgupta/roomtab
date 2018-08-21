@@ -1,6 +1,6 @@
 # slop.ml
 Collaborative family/roommate grocery list app  
-*Check it out at [slop.ml](http://slop.ml)*  
+*Check it out at [slop.ml](http://slop.anuv.me)*  
 &nbsp;  
 
 Libraries Used  
