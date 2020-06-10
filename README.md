@@ -2,7 +2,7 @@
 
 Collaborative family/roommate grocery list app  
 _Check it out at [slop.anuv.me](http://slop.anuv.me)_  
-<sub>_password: slop_</sub>  
+<sub>_Password: slop_</sub>  
 &nbsp;
 
 Libraries Used  
