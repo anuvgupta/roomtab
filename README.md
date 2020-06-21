@@ -1,5 +1,5 @@
 # slop
-Collaborative realtime synchronized grocery lists.  
+Collaborative realtime synchronized grocery lists. Built with pocketjs.  
 _Check it out at [slop.anuv.me](http://slop.anuv.me)_  
 <sub>_Password: slop_</sub>  
 &nbsp;
