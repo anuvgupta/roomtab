@@ -1,5 +1,5 @@
 /*
-  pocketjs v1.0
+  pocketjs v1.0 (modified for security)
   [http://anuv.me/pocketjs]
   Copyright: (c) 2016 Anuv Gupta
   File: pocket.js (pocketjs client)
@@ -19,7 +19,7 @@ var Pocket = function () {
         run: function () { },
         close: function () { },
     };
-    var on = { };
+    var on = {};
 
     // convenience
     var encode = function (text) {
@@ -29,9 +29,9 @@ var Pocket = function () {
     // object
     var pocket;
     pocket = {
-        connect: function (domain, port, server) {
-            var target = 'ws://' + domain + ':' + port + '/' + server;
-            target = 'ws://' + domain + ':' + port.toString() + '/';
+        connect: function (domain, port, server, secure) {
+            var target = (secure ? 'wss://' : 'ws://') + domain + ':' + port.toString() + '/' + server;
+            // target = (secure ? 'wss://' : 'ws://') + domain + ':' + port.toString() + '/';
             if ('WebSocket' in window) ws = new WebSocket(target);
             else if ('MozWebSocket' in window) ws = new MozWebSocket(target);
             else {
@@ -45,7 +45,7 @@ var Pocket = function () {
             }
             ws.onclose = function (e) {
                 ol = false;
-                ws.send(encode(JSON.stringify({ command: 'close', id: id, ad: address, p: port})));
+                ws.send(encode(JSON.stringify({ command: 'close', id: id, ad: address, p: port })));
                 console.log('[POCKET] disconnected');
                 ev['close']();
                 return false;

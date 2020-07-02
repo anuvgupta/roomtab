@@ -1,17 +1,58 @@
 {
     "wALnR": {
-        "name": "List1",
+        "name": "Safeway",
         "items": {
             "FUn1L": {
                 "text": "Eggs",
                 "checked": true
             },
             "XIwcq": {
-                "text": "Milk1",
+                "text": "Milk",
                 "checked": false
             },
             "qYIgC": {
                 "text": "Bread",
+                "checked": true
+            },
+            "su6yp": {
+                "text": "Cheese",
+                "checked": true
+            },
+            "ySQOQ": {
+                "text": "Chips",
+                "checked": false
+            }
+        }
+    },
+    "rC3Ts": {
+        "name": "Trader Joes",
+        "items": []
+    },
+    "gTmWO": {
+        "name": "Walmart",
+        "items": []
+    },
+    "jOpL3": {
+        "name": "Nob Hill",
+        "items": []
+    },
+    "y5zfT": {
+        "name": "Costco",
+        "items": []
+    },
+    "4CIuu": {
+        "name": "TestList",
+        "items": {
+            "BOb11": {
+                "text": "item1",
+                "checked": false
+            },
+            "m1VMf": {
+                "text": "item2",
+                "checked": false
+            },
+            "cPsfR": {
+                "text": "item3",
                 "checked": false
             }
         }

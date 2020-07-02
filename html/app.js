@@ -2,9 +2,12 @@ var app = {
     pocket: Pocket(),
     block: Block('div', 'app'),
     server: {
-        domain: document.domain,
-        port: 8004,
-        script: 'lists.php'
+        domain: document.domain === 'localhost'
+            ? 'localhost'
+            : 'pjs.anuv.me',
+        port: location.protocol === 'https:' ? 443 : 80,
+        secure: location.protocol === 'https:',
+        script: 'slop'
     },
     signin: function (password) {
         if (this.pocket.online()) this.pocket.send('auth', 'sign in', password, 'token');
@@ -71,7 +74,9 @@ $(document).ready(function () {
     var loadingPage = Block('div', 'loading').html(document.body.innerHTML);
     // set pocketjs events
     app.pocket.onOpen(function () {
-        app.pocket.send('auth', 'auth', 'password', app.token());
+        setTimeout(_ => {
+            app.pocket.send('auth', 'auth', 'password', app.token());
+        }, 500);
     });
     app.pocket.bind('authenticate', function (success, token) {
         if (success) {
@@ -215,11 +220,11 @@ $(document).ready(function () {
         loadingPage.fill(document.body);
         app.block
             .child('body/signin')
-                .on('show')
-                .on('message', {
-                    text: 'disconnected'
-                })
-        ;
+            .on('show')
+            .on('message', {
+                text: 'disconnected'
+            })
+            ;
         setTimeout(function () {
             app.block.fill(document.body).css('opacity', '1');
         }, 2000);
@@ -228,6 +233,6 @@ $(document).ready(function () {
     // load all blocks
     app.block.load(function () {
         Block.queries();
-        app.pocket.connect(app.server.domain, app.server.port, app.server.script);
+        app.pocket.connect(app.server.domain, app.server.port, app.server.script, app.server.secure);
     }, 'app', 'jQuery');
 });
